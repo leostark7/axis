@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import StoreInit from "@/components/StoreInit";
+import PwaRegister from "@/components/PwaRegister";
+import GlobalQuickAdd from "@/components/GlobalQuickAdd";
+import Reminders from "@/components/Reminders";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,6 +20,20 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Axis — by LS Brainstorm",
   description: "A agenda inteligente que dá ritmo às suas ideias, roteiros e compromissos.",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Axis",
+  },
+};
+
+export const viewport = {
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -28,8 +45,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex text-[#101a2e]">
         <div className="axis-bg" />
         <StoreInit />
+        <PwaRegister />
+        <Reminders />
         <Sidebar />
         <main className="flex-1 overflow-y-auto">{children}</main>
+        <GlobalQuickAdd />
       </body>
     </html>
   );

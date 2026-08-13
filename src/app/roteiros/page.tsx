@@ -1,16 +1,32 @@
 "use client";
 
+import { useState } from "react";
+import { addDays, differenceInCalendarDays, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useAxisStore } from "@/lib/store";
-import { SCRIPT_STAGE_LABEL, ScriptStage, TYPE_GRADIENT } from "@/lib/types";
+import {
+  Item,
+  SCRIPT_STAGE_LABEL,
+  ScriptStage,
+  STAGE_DEADLINE_DAYS,
+  TYPE_GRADIENT,
+} from "@/lib/types";
 import QuickAdd from "@/components/QuickAdd";
-import { Trash2 } from "lucide-react";
+import Teleprompter from "@/components/Teleprompter";
+import { Trash2, Presentation } from "lucide-react";
 
 const STAGES: ScriptStage[] = ["rascunho", "gravacao", "edicao", "publicacao"];
+
+function deadlineFor(item: Item) {
+  const stage = item.scriptStage ?? "rascunho";
+  return addDays(new Date(item.createdAt), STAGE_DEADLINE_DAYS[stage]);
+}
 
 export default function RoteirosPage() {
   const items = useAxisStore((s) => s.items);
   const setScriptStage = useAxisStore((s) => s.setScriptStage);
   const removeItem = useAxisStore((s) => s.removeItem);
+  const [teleprompterItem, setTeleprompterItem] = useState<Item | null>(null);
 
   const scripts = items.filter((it) => it.type === "script");
 
@@ -18,7 +34,7 @@ export default function RoteirosPage() {
     <div className="mx-auto max-w-5xl p-6">
       <h1 className="mb-1 text-2xl font-bold glow-text">🎬 Roteiros</h1>
       <p className="mb-5 text-sm text-[#101a2e]/50">
-        Cada roteiro é um mini-projeto: do rascunho até a publicação.
+        Cada roteiro é um mini-projeto: do rascunho até a publicação, com prazo automático por etapa.
       </p>
 
       <div className="mb-6">
@@ -37,37 +53,70 @@ export default function RoteirosPage() {
             <div className="glass flex min-h-[140px] flex-col gap-2 rounded-2xl p-2">
               {scripts
                 .filter((s) => s.scriptStage === stage)
-                .map((s) => (
-                  <div
-                    key={s.id}
-                    className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-800 shadow-sm"
-                  >
-                    <div className="mb-2 font-medium">{s.title}</div>
-                    <div className="flex items-center justify-between">
-                      <select
-                        value={s.scriptStage}
-                        onChange={(e) => setScriptStage(s.id, e.target.value as ScriptStage)}
-                        className="rounded-lg bg-emerald-100 px-1.5 py-1 text-[11px] font-medium text-emerald-800 outline-none"
+                .map((s) => {
+                  const deadline = deadlineFor(s);
+                  const daysLeft = differenceInCalendarDays(deadline, new Date());
+                  const overdue = daysLeft < 0;
+                  return (
+                    <div
+                      key={s.id}
+                      className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-800 shadow-sm"
+                    >
+                      <div className="mb-1.5 font-medium">{s.title}</div>
+                      <div
+                        className={`mb-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          overdue
+                            ? "bg-red-100 text-red-600"
+                            : daysLeft <= 1
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-emerald-100 text-emerald-700"
+                        }`}
                       >
-                        {STAGES.map((st) => (
-                          <option key={st} value={st}>
-                            {SCRIPT_STAGE_LABEL[st]}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        onClick={() => removeItem(s.id)}
-                        className="text-emerald-700/50 hover:text-red-500"
-                      >
-                        <Trash2 size={12} />
-                      </button>
+                        {overdue
+                          ? `Atrasado ${Math.abs(daysLeft)}d`
+                          : daysLeft === 0
+                            ? "Prazo hoje"
+                            : `Prazo: ${format(deadline, "d MMM", { locale: ptBR })}`}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <select
+                          value={s.scriptStage}
+                          onChange={(e) => setScriptStage(s.id, e.target.value as ScriptStage)}
+                          className="rounded-lg bg-emerald-100 px-1.5 py-1 text-[11px] font-medium text-emerald-800 outline-none"
+                        >
+                          {STAGES.map((st) => (
+                            <option key={st} value={st}>
+                              {SCRIPT_STAGE_LABEL[st]}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setTeleprompterItem(s)}
+                            title="Abrir teleprompter"
+                            className="text-emerald-700/60 hover:text-emerald-900"
+                          >
+                            <Presentation size={13} />
+                          </button>
+                          <button
+                            onClick={() => removeItem(s.id)}
+                            className="text-emerald-700/50 hover:text-red-500"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         ))}
       </div>
+
+      {teleprompterItem && (
+        <Teleprompter item={teleprompterItem} onClose={() => setTeleprompterItem(null)} />
+      )}
     </div>
   );
 }

@@ -48,3 +48,11 @@ export const SCRIPT_STAGE_LABEL: Record<ScriptStage, string> = {
   edicao: "Edição",
   publicacao: "Publicação",
 };
+
+// Days from creation within which each stage is expected to be reached.
+export const STAGE_DEADLINE_DAYS: Record<ScriptStage, number> = {
+  rascunho: 1,
+  gravacao: 3,
+  edicao: 5,
+  publicacao: 7,
+};
