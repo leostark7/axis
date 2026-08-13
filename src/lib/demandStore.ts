@@ -1,0 +1,182 @@
+"use client";
+
+import { create } from "zustand";
+import { createClient } from "@/lib/supabase/client";
+import { Attachment, Demanda, DemandaComment, DemandaStatus, Profile } from "./demandTypes";
+
+const supabase = createClient();
+
+type DemandaRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: DemandaStatus;
+  requested_by: string | null;
+  assigned_to: string | null;
+  due_date: string | null;
+  attachments: Attachment[];
+  created_at: string;
+  updated_at: string;
+};
+
+type CommentRow = {
+  id: string;
+  demanda_id: string;
+  author_id: string | null;
+  body: string;
+  created_at: string;
+};
+
+function fromRow(row: DemandaRow): Demanda {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    status: row.status,
+    requestedBy: row.requested_by,
+    assignedTo: row.assigned_to,
+    dueDate: row.due_date,
+    attachments: row.attachments ?? [],
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function fromCommentRow(row: CommentRow): DemandaComment {
+  return {
+    id: row.id,
+    demandaId: row.demanda_id,
+    authorId: row.author_id,
+    body: row.body,
+    createdAt: row.created_at,
+  };
+}
+
+interface DemandState {
+  demandas: Demanda[];
+  comments: Record<string, DemandaComment[]>;
+  profiles: Profile[];
+  loaded: boolean;
+  init: () => Promise<void>;
+  addDemanda: (input: {
+    title: string;
+    description?: string;
+    assignedTo?: string | null;
+    dueDate?: string | null;
+  }) => Promise<void>;
+  updateDemanda: (id: string, patch: Partial<Demanda>) => Promise<void>;
+  removeDemanda: (id: string) => Promise<void>;
+  addAttachment: (id: string, attachment: Attachment) => Promise<void>;
+  removeAttachment: (id: string, url: string) => Promise<void>;
+  loadComments: (demandaId: string) => Promise<void>;
+  addComment: (demandaId: string, body: string) => Promise<void>;
+}
+
+let subscribed = false;
+
+export const useDemandStore = create<DemandState>()((set, get) => ({
+  demandas: [],
+  comments: {},
+  profiles: [],
+  loaded: false,
+  init: async () => {
+    if (get().loaded) return;
+
+    const [{ data: demandas }, { data: profiles }] = await Promise.all([
+      supabase.from("demandas").select("*").order("created_at", { ascending: false }),
+      supabase.from("profiles").select("*"),
+    ]);
+
+    set({
+      demandas: (demandas as DemandaRow[] | null)?.map(fromRow) ?? [],
+      profiles: (profiles as Profile[] | null) ?? [],
+      loaded: true,
+    });
+
+    if (!subscribed) {
+      subscribed = true;
+      const refresh = () =>
+        supabase
+          .from("demandas")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .then(({ data }) => {
+            if (data) set({ demandas: (data as DemandaRow[]).map(fromRow) });
+          });
+
+      supabase
+        .channel("demandas-changes")
+        .on("postgres_changes", { event: "*", schema: "public", table: "demandas" }, refresh)
+        .subscribe();
+    }
+  },
+  addDemanda: async (input) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    await supabase.from("demandas").insert({
+      title: input.title.trim(),
+      description: input.description?.trim() || null,
+      assigned_to: input.assignedTo ?? null,
+      due_date: input.dueDate ?? null,
+      requested_by: user?.id ?? null,
+    });
+  },
+  updateDemanda: async (id, patch) => {
+    await supabase
+      .from("demandas")
+      .update({
+        ...(patch.title !== undefined && { title: patch.title }),
+        ...(patch.description !== undefined && { description: patch.description }),
+        ...(patch.status !== undefined && { status: patch.status }),
+        ...(patch.assignedTo !== undefined && { assigned_to: patch.assignedTo }),
+        ...(patch.dueDate !== undefined && { due_date: patch.dueDate }),
+        ...(patch.attachments !== undefined && { attachments: patch.attachments }),
+      })
+      .eq("id", id);
+  },
+  removeDemanda: async (id) => {
+    await supabase.from("demandas").delete().eq("id", id);
+  },
+  addAttachment: async (id, attachment) => {
+    const demanda = get().demandas.find((d) => d.id === id);
+    if (!demanda) return;
+    await get().updateDemanda(id, { attachments: [...demanda.attachments, attachment] });
+  },
+  removeAttachment: async (id, url) => {
+    const demanda = get().demandas.find((d) => d.id === id);
+    if (!demanda) return;
+    await get().updateDemanda(id, {
+      attachments: demanda.attachments.filter((a) => a.url !== url),
+    });
+  },
+  loadComments: async (demandaId) => {
+    const { data } = await supabase
+      .from("demanda_comments")
+      .select("*")
+      .eq("demanda_id", demandaId)
+      .order("created_at", { ascending: true });
+    set((s) => ({
+      comments: { ...s.comments, [demandaId]: (data as CommentRow[] | null)?.map(fromCommentRow) ?? [] },
+    }));
+
+    supabase
+      .channel(`demanda-comments-${demandaId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "demanda_comments", filter: `demanda_id=eq.${demandaId}` },
+        () => get().loadComments(demandaId)
+      )
+      .subscribe();
+  },
+  addComment: async (demandaId, body) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    await supabase.from("demanda_comments").insert({
+      demanda_id: demandaId,
+      author_id: user?.id ?? null,
+      body: body.trim(),
+    });
+  },
+}));
