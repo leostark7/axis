@@ -63,6 +63,8 @@ interface AxisState {
   toggleReaction: (id: string, emoji: string) => Promise<void>;
   applyRecurrence: (id: string, freq: RecurrenceFreq, occurrences: number) => Promise<void>;
   removeSeries: (recurringGroupId: string) => Promise<void>;
+  bulkSchedule: (ids: string[], date: string | null) => Promise<void>;
+  bulkRemove: (ids: string[]) => Promise<void>;
 }
 
 let initPromise: Promise<void> | null = null;
@@ -220,5 +222,29 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
   removeSeries: async (recurringGroupId) => {
     await supabase.from("items").delete().eq("recurring_group_id", recurringGroupId);
     logActivity("excluiu a série inteira de", "item", "itens recorrentes");
+  },
+  bulkSchedule: async (ids, date) => {
+    await supabase.from("items").update({ date }).in("id", ids);
+    logActivity(`reagendou ${ids.length} itens`, "item", date ?? "backlog");
+  },
+  bulkRemove: async (ids) => {
+    const removed = get().items.filter((it) => ids.includes(it.id));
+    if (removed.length === 0) return;
+    await supabase.from("items").delete().in("id", ids);
+    logActivity(`excluiu ${removed.length} itens`, "item", removed.map((r) => r.title).join(", "));
+    useUndoStore.getState().pushUndo(`${removed.length} itens excluídos`, () => {
+      supabase.from("items").insert(
+        removed.map((item) => ({
+          title: item.title,
+          type: item.type,
+          date: item.date,
+          time: item.time,
+          notes: item.notes ?? null,
+          script_stage: item.scriptStage ?? null,
+          done: item.done ?? false,
+          reactions: item.reactions ?? [],
+        }))
+      );
+    });
   },
 }));
