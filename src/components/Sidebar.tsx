@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CalendarDays, Inbox, Clapperboard, ClipboardList, Building2, BarChart3, History, Zap, LogOut, Menu, X } from "lucide-react";
+import { Sun, CalendarDays, Inbox, Clapperboard, ClipboardList, Building2, BarChart3, History, Zap, LogOut, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { InstalledBadge } from "./InstallPrompt";
 import SemanticSearch from "./SemanticSearch";
 import PushSubscribeButton from "./PushSubscribeButton";
 
 const NAV = [
-  { href: "/", label: "Calendário", icon: CalendarDays },
+  { href: "/", label: "Hoje", icon: Sun },
+  { href: "/calendario", label: "Calendário", icon: CalendarDays },
   { href: "/backlog", label: "Caixa de Ideias", icon: Inbox },
   { href: "/roteiros", label: "Roteiros", icon: Clapperboard },
   { href: "/demandas", label: "Demandas", icon: ClipboardList },
