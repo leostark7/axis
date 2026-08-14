@@ -7,6 +7,7 @@ import { CalendarDays, Inbox, Clapperboard, ClipboardList, BarChart3, History, Z
 import { createClient } from "@/lib/supabase/client";
 import { InstalledBadge } from "./InstallPrompt";
 import SemanticSearch from "./SemanticSearch";
+import PushSubscribeButton from "./PushSubscribeButton";
 
 const NAV = [
   { href: "/", label: "Calendário", icon: CalendarDays },
@@ -111,7 +112,10 @@ export default function Sidebar() {
           })}
         </nav>
 
-        <div className="mt-auto flex items-center justify-between gap-2 border-t border-[#101a2e]/10 px-2 pt-4">
+        <div className="mt-auto flex flex-col gap-2 border-t border-[#101a2e]/10 pt-4">
+          <PushSubscribeButton />
+        </div>
+        <div className="flex items-center justify-between gap-2 px-2 pt-2">
           <div className="flex min-w-0 items-center gap-1.5">
             <span className="truncate text-xs text-[#101a2e]/60" title={email ?? ""}>
               {email ?? ""}
