@@ -42,13 +42,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex text-[#101a2e]">
+      <body className="min-h-full flex flex-col text-[#101a2e] md:flex-row">
         <div className="axis-bg" />
         <StoreInit />
         <PwaRegister />
         <Reminders />
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
         <GlobalQuickAdd />
       </body>
     </html>

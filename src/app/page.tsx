@@ -66,15 +66,15 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="flex h-screen">
-      <div className="flex flex-1 flex-col p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <h1 className="text-2xl font-bold capitalize glow-text">
+    <div className="flex h-full">
+      <div className="flex flex-1 flex-col p-4 md:p-6">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-xl font-bold capitalize glow-text md:text-2xl">
             {view === "week"
               ? `Semana de ${format(startOfWeek(cursor, { weekStartsOn: 0 }), "d MMM", { locale: ptBR })}`
               : format(cursor, "MMMM yyyy", { locale: ptBR })}
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="glass flex items-center gap-1 rounded-xl p-1">
               <button
                 onClick={() => setView("month")}
