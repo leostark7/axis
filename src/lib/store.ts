@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { addDays, addMonths, addWeeks, format } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activityLog";
+import { useUndoStore } from "@/lib/undoStore";
 import { Item, ItemType, Reaction, RecurrenceFreq, RECURRENCE_LABEL, ScriptStage } from "./types";
 
 const supabase = createClient();
@@ -140,7 +141,21 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
   removeItem: async (id) => {
     const item = get().items.find((it) => it.id === id);
     await supabase.from("items").delete().eq("id", id);
-    if (item) logActivity("excluiu", "item", item.title);
+    if (item) {
+      logActivity("excluiu", "item", item.title);
+      useUndoStore.getState().pushUndo(`Item "${item.title}" excluído`, () => {
+        supabase.from("items").insert({
+          title: item.title,
+          type: item.type,
+          date: item.date,
+          time: item.time,
+          notes: item.notes ?? null,
+          script_stage: item.scriptStage ?? null,
+          done: item.done ?? false,
+          reactions: item.reactions ?? [],
+        });
+      });
+    }
   },
   scheduleItem: async (id, date) => {
     await get().updateItem(id, { date });

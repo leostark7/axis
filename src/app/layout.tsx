@@ -8,6 +8,7 @@ import Reminders from "@/components/Reminders";
 import InstallPrompt from "@/components/InstallPrompt";
 import AxisChat from "@/components/AxisChat";
 import LoadingBar from "@/components/LoadingBar";
+import UndoToast from "@/components/UndoToast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -56,6 +57,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <GlobalQuickAdd />
         <InstallPrompt />
         <AxisChat />
+        <UndoToast />
       </body>
     </html>
   );

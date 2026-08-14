@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activityLog";
+import { useUndoStore } from "@/lib/undoStore";
 import { Attachment, Demanda, DemandaComment, DemandaStatus, Profile, Reaction } from "./demandTypes";
 
 const supabase = createClient();
@@ -157,7 +158,21 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
   removeDemanda: async (id) => {
     const demanda = get().demandas.find((d) => d.id === id);
     await supabase.from("demandas").delete().eq("id", id);
-    if (demanda) logActivity("excluiu a demanda", "demanda", demanda.title);
+    if (demanda) {
+      logActivity("excluiu a demanda", "demanda", demanda.title);
+      useUndoStore.getState().pushUndo(`Demanda "${demanda.title}" excluída`, () => {
+        supabase.from("demandas").insert({
+          title: demanda.title,
+          description: demanda.description,
+          status: demanda.status,
+          assigned_to: demanda.assignedTo,
+          due_date: demanda.dueDate,
+          attachments: demanda.attachments,
+          reactions: demanda.reactions,
+          linked_item_id: demanda.linkedItemId,
+        });
+      });
+    }
   },
   addAttachment: async (id, attachment) => {
     const demanda = get().demandas.find((d) => d.id === id);
