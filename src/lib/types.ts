@@ -10,6 +10,7 @@ export interface Item {
   date: string | null; // ISO date (yyyy-MM-dd), null = backlog (no date yet)
   time?: string | null; // HH:mm
   createdAt: string;
+  updatedAt?: string;
   scriptStage?: ScriptStage;
   done?: boolean;
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAxisStore } from "@/lib/store";
 import { classifyText } from "@/lib/classify";
 import { ItemType, TYPE_LABEL } from "@/lib/types";
+import VoiceButton from "./VoiceButton";
 import { Sparkles, Loader2 } from "lucide-react";
 
 const TYPES: ItemType[] = ["idea", "task", "script", "event"];
@@ -20,15 +21,16 @@ export default function QuickAdd() {
     setTitle("");
   }
 
-  async function submitWithAI() {
-    if (!title.trim()) return;
+  async function submitWithAI(overrideText?: string) {
+    const text = overrideText ?? title;
+    if (!text.trim()) return;
     setAiLoading(true);
-    const result = await classifyText(title);
+    const result = await classifyText(text);
     setAiLoading(false);
     if (result) {
       addItem({ title: result.title, type: result.type, date: result.date, time: result.time });
     } else {
-      addItem({ title, type, date: null });
+      addItem({ title: text, type, date: null });
     }
     setTitle("");
   }
@@ -53,8 +55,9 @@ export default function QuickAdd() {
         placeholder="Jogue aqui uma ideia, tarefa ou roteiro..."
         className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sm text-[#101a2e] placeholder-[#101a2e]/35 outline-none"
       />
+      <VoiceButton onResult={(text) => submitWithAI(text)} />
       <button
-        onClick={submitWithAI}
+        onClick={() => submitWithAI()}
         disabled={aiLoading}
         title="Deixar a IA classificar tipo, data e hora automaticamente"
         className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_-4px_rgba(37,99,235,0.5)] transition hover:brightness-110 disabled:opacity-60"

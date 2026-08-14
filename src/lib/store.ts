@@ -16,6 +16,7 @@ type Row = {
   script_stage: ScriptStage | null;
   done: boolean;
   created_at: string;
+  updated_at: string;
 };
 
 function fromRow(row: Row): Item {
@@ -29,6 +30,7 @@ function fromRow(row: Row): Item {
     scriptStage: row.script_stage ?? undefined,
     done: row.done,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -51,41 +53,47 @@ interface AxisState {
   toggleDone: (id: string) => Promise<void>;
 }
 
-let subscribed = false;
+let initPromise: Promise<void> | null = null;
+
+function ensureSubscribed(set: (partial: Partial<AxisState>) => void) {
+  const CHANNEL_TOPIC = "realtime:items-changes";
+  if (supabase.getChannels().some((c) => c.topic === CHANNEL_TOPIC)) return;
+  supabase
+    .channel("items-changes")
+    .on("postgres_changes", { event: "*", schema: "public", table: "items" }, () => {
+      supabase
+        .from("items")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .then(({ data }) => {
+          if (data) set({ items: (data as Row[]).map(fromRow) });
+        });
+    })
+    .subscribe();
+}
 
 export const useAxisStore = create<AxisState>()((set, get) => ({
   items: [],
   loading: false,
   loaded: false,
-  init: async () => {
-    if (get().loaded || get().loading) return;
-    set({ loading: true });
+  init: () => {
+    if (initPromise) return initPromise;
+    initPromise = (async () => {
+      set({ loading: true });
 
-    const { data, error } = await supabase
-      .from("items")
-      .select("*")
-      .order("created_at", { ascending: false });
+      const { data, error } = await supabase
+        .from("items")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      set({ items: (data as Row[]).map(fromRow) });
-    }
-    set({ loading: false, loaded: true });
+      if (!error && data) {
+        set({ items: (data as Row[]).map(fromRow) });
+      }
+      set({ loading: false, loaded: true });
 
-    if (!subscribed) {
-      subscribed = true;
-      supabase
-        .channel("items-changes")
-        .on("postgres_changes", { event: "*", schema: "public", table: "items" }, () => {
-          supabase
-            .from("items")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .then(({ data }) => {
-              if (data) set({ items: (data as Row[]).map(fromRow) });
-            });
-        })
-        .subscribe();
-    }
+      ensureSubscribed(set);
+    })();
+    return initPromise;
   },
   addItem: async (input) => {
     const {

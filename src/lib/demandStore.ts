@@ -72,43 +72,49 @@ interface DemandState {
   addComment: (demandaId: string, body: string) => Promise<void>;
 }
 
-let subscribed = false;
+let initPromise: Promise<void> | null = null;
+const subscribedComments = new Set<string>();
+
+function hasChannel(topic: string) {
+  return supabase.getChannels().some((c) => c.topic === topic);
+}
 
 export const useDemandStore = create<DemandState>()((set, get) => ({
   demandas: [],
   comments: {},
   profiles: [],
   loaded: false,
-  init: async () => {
-    if (get().loaded) return;
+  init: () => {
+    if (initPromise) return initPromise;
+    initPromise = (async () => {
+      const [{ data: demandas }, { data: profiles }] = await Promise.all([
+        supabase.from("demandas").select("*").order("created_at", { ascending: false }),
+        supabase.from("profiles").select("*"),
+      ]);
 
-    const [{ data: demandas }, { data: profiles }] = await Promise.all([
-      supabase.from("demandas").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("*"),
-    ]);
+      set({
+        demandas: (demandas as DemandaRow[] | null)?.map(fromRow) ?? [],
+        profiles: (profiles as Profile[] | null) ?? [],
+        loaded: true,
+      });
 
-    set({
-      demandas: (demandas as DemandaRow[] | null)?.map(fromRow) ?? [],
-      profiles: (profiles as Profile[] | null) ?? [],
-      loaded: true,
-    });
+      if (!hasChannel("realtime:demandas-changes")) {
+        const refresh = () =>
+          supabase
+            .from("demandas")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .then(({ data }) => {
+              if (data) set({ demandas: (data as DemandaRow[]).map(fromRow) });
+            });
 
-    if (!subscribed) {
-      subscribed = true;
-      const refresh = () =>
         supabase
-          .from("demandas")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .then(({ data }) => {
-            if (data) set({ demandas: (data as DemandaRow[]).map(fromRow) });
-          });
-
-      supabase
-        .channel("demandas-changes")
-        .on("postgres_changes", { event: "*", schema: "public", table: "demandas" }, refresh)
-        .subscribe();
-    }
+          .channel("demandas-changes")
+          .on("postgres_changes", { event: "*", schema: "public", table: "demandas" }, refresh)
+          .subscribe();
+      }
+    })();
+    return initPromise;
   },
   addDemanda: async (input) => {
     const {
@@ -160,12 +166,26 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
       comments: { ...s.comments, [demandaId]: (data as CommentRow[] | null)?.map(fromCommentRow) ?? [] },
     }));
 
+    if (subscribedComments.has(demandaId)) return;
+    subscribedComments.add(demandaId);
+
+    const refresh = async () => {
+      const { data } = await supabase
+        .from("demanda_comments")
+        .select("*")
+        .eq("demanda_id", demandaId)
+        .order("created_at", { ascending: true });
+      set((s) => ({
+        comments: { ...s.comments, [demandaId]: (data as CommentRow[] | null)?.map(fromCommentRow) ?? [] },
+      }));
+    };
+
     supabase
       .channel(`demanda-comments-${demandaId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "demanda_comments", filter: `demanda_id=eq.${demandaId}` },
-        () => get().loadComments(demandaId)
+        refresh
       )
       .subscribe();
   },

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CalendarDays, Inbox, Clapperboard, ClipboardList, Zap, LogOut, Menu, X } from "lucide-react";
+import { CalendarDays, Inbox, Clapperboard, ClipboardList, BarChart3, Zap, LogOut, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { InstalledBadge } from "./InstallPrompt";
 
@@ -12,6 +12,7 @@ const NAV = [
   { href: "/backlog", label: "Caixa de Ideias", icon: Inbox },
   { href: "/roteiros", label: "Roteiros", icon: Clapperboard },
   { href: "/demandas", label: "Demandas", icon: ClipboardList },
+  { href: "/metricas", label: "Métricas", icon: BarChart3 },
 ];
 
 export default function Sidebar() {

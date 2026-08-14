@@ -13,9 +13,11 @@ import {
 } from "@/lib/types";
 import QuickAdd from "@/components/QuickAdd";
 import Teleprompter from "@/components/Teleprompter";
+import RoteirosTimeline from "@/components/RoteirosTimeline";
 import { Trash2, Presentation } from "lucide-react";
 
 const STAGES: ScriptStage[] = ["rascunho", "gravacao", "edicao", "publicacao"];
+type ViewMode = "kanban" | "timeline";
 
 function deadlineFor(item: Item) {
   const stage = item.scriptStage ?? "rascunho";
@@ -27,12 +29,37 @@ export default function RoteirosPage() {
   const setScriptStage = useAxisStore((s) => s.setScriptStage);
   const removeItem = useAxisStore((s) => s.removeItem);
   const [teleprompterItem, setTeleprompterItem] = useState<Item | null>(null);
+  const [view, setView] = useState<ViewMode>("kanban");
 
   const scripts = items.filter((it) => it.type === "script");
 
   return (
     <div className="mx-auto max-w-5xl p-6">
-      <h1 className="mb-1 text-2xl font-bold glow-text">🎬 Roteiros</h1>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold glow-text">🎬 Roteiros</h1>
+        <div className="glass flex items-center gap-1 rounded-xl p-1">
+          <button
+            onClick={() => setView("kanban")}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+              view === "kanban"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white"
+                : "text-[#101a2e]/60 hover:bg-[#101a2e]/10"
+            }`}
+          >
+            Kanban
+          </button>
+          <button
+            onClick={() => setView("timeline")}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+              view === "timeline"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white"
+                : "text-[#101a2e]/60 hover:bg-[#101a2e]/10"
+            }`}
+          >
+            Linha do tempo
+          </button>
+        </div>
+      </div>
       <p className="mb-5 text-sm text-[#101a2e]/50">
         Cada roteiro é um mini-projeto: do rascunho até a publicação, com prazo automático por etapa.
       </p>
@@ -41,6 +68,9 @@ export default function RoteirosPage() {
         <QuickAdd />
       </div>
 
+      {view === "timeline" ? (
+        <RoteirosTimeline scripts={scripts} />
+      ) : (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         {STAGES.map((stage) => (
           <div key={stage} className="flex flex-col gap-2">
@@ -113,6 +143,7 @@ export default function RoteirosPage() {
           </div>
         ))}
       </div>
+      )}
 
       {teleprompterItem && (
         <Teleprompter item={teleprompterItem} onClose={() => setTeleprompterItem(null)} />
