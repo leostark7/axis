@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CalendarDays, Inbox, Clapperboard, ClipboardList, Zap, LogOut, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { InstalledBadge } from "./InstallPrompt";
 
 const NAV = [
   { href: "/", label: "Calendário", icon: CalendarDays },
@@ -105,9 +106,12 @@ export default function Sidebar() {
         </nav>
 
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-[#101a2e]/10 px-2 pt-4">
-          <span className="truncate text-xs text-[#101a2e]/40" title={email ?? ""}>
-            {email ?? ""}
-          </span>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate text-xs text-[#101a2e]/40" title={email ?? ""}>
+              {email ?? ""}
+            </span>
+            <InstalledBadge />
+          </div>
           <button
             onClick={handleLogout}
             title="Sair"

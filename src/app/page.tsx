@@ -23,15 +23,18 @@ import QuickAdd from "@/components/QuickAdd";
 import StatsDashboard from "@/components/StatsDashboard";
 import SummaryPanel from "@/components/SummaryPanel";
 import Radar from "@/components/Radar";
+import DayModal from "@/components/DayModal";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type ViewMode = "month" | "week";
+const MONTH_CELL_LIMIT = 3;
 
 export default function CalendarPage() {
   const items = useAxisStore((s) => s.items);
   const scheduleItem = useAxisStore((s) => s.scheduleItem);
   const [cursor, setCursor] = useState(new Date());
   const [view, setView] = useState<ViewMode>("month");
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
 
   const days = useMemo(() => {
     if (view === "week") {
@@ -143,13 +146,16 @@ export default function CalendarPage() {
           {days.map((day) => {
             const dayItems = itemsForDay(day);
             const today = isToday(day);
+            const capped = view === "month" ? dayItems.slice(0, MONTH_CELL_LIMIT) : dayItems;
+            const hiddenCount = dayItems.length - capped.length;
             return (
               <div
                 key={day.toISOString()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => handleDrop(e, day)}
+                onClick={() => view === "month" && setSelectedDay(day)}
                 className={`flex flex-col gap-1 p-1.5 transition-colors ${
-                  view === "week" ? "min-h-[420px]" : "min-h-[100px]"
+                  view === "week" ? "min-h-[420px]" : "min-h-[92px] active:bg-blue-600/[0.05]"
                 } ${today ? "bg-blue-600/[0.07]" : ""} ${
                   view === "month" && !isSameMonth(day, cursor) ? "opacity-35" : ""
                 }`}
@@ -163,16 +169,31 @@ export default function CalendarPage() {
                 >
                   {format(day, "d")}
                 </span>
-                <div className="flex flex-col gap-1 overflow-y-auto">
-                  {dayItems.map((it) => (
+                <div className="flex flex-col gap-1 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                  {capped.map((it) => (
                     <ItemChip key={it.id} item={it} onUnschedule={() => scheduleItem(it.id, null)} />
                   ))}
+                  {hiddenCount > 0 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDay(day);
+                      }}
+                      className="rounded-md bg-[#101a2e]/5 px-1.5 py-1 text-left text-[10px] font-semibold text-[#101a2e]/50 hover:bg-[#101a2e]/10"
+                    >
+                      +{hiddenCount} mais
+                    </button>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
       </div>
+
+      {selectedDay && (
+        <DayModal day={selectedDay} items={itemsForDay(selectedDay)} onClose={() => setSelectedDay(null)} />
+      )}
 
       <div className="glass hidden w-72 shrink-0 flex-col gap-2 border-l p-4 md:flex">
         <h2 className="text-sm font-bold text-[#101a2e]/80">✨ Caixa de Ideias</h2>

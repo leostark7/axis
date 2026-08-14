@@ -5,6 +5,7 @@ import StoreInit from "@/components/StoreInit";
 import PwaRegister from "@/components/PwaRegister";
 import GlobalQuickAdd from "@/components/GlobalQuickAdd";
 import Reminders from "@/components/Reminders";
+import InstallPrompt from "@/components/InstallPrompt";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Sidebar />
         <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
         <GlobalQuickAdd />
+        <InstallPrompt />
       </body>
     </html>
   );
