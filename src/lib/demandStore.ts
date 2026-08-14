@@ -17,6 +17,7 @@ type DemandaRow = {
   due_date: string | null;
   attachments: Attachment[];
   reactions: Reaction[] | null;
+  linked_item_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -40,6 +41,7 @@ function fromRow(row: DemandaRow): Demanda {
     dueDate: row.due_date,
     attachments: row.attachments ?? [],
     reactions: row.reactions ?? [],
+    linkedItemId: row.linked_item_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -145,6 +147,7 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
         ...(patch.dueDate !== undefined && { due_date: patch.dueDate }),
         ...(patch.attachments !== undefined && { attachments: patch.attachments }),
         ...(patch.reactions !== undefined && { reactions: patch.reactions }),
+        ...(patch.linkedItemId !== undefined && { linked_item_id: patch.linkedItemId }),
       })
       .eq("id", id);
     if (before && patch.status !== undefined && patch.status !== before.status) {

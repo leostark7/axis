@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDemandStore } from "@/lib/demandStore";
+import { useAxisStore } from "@/lib/store";
 import { Demanda, DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes";
 import DemandaModal from "@/components/DemandaModal";
-import { Plus, Paperclip, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Paperclip, Link2, Calendar as CalendarIcon } from "lucide-react";
 
 const STATUSES: DemandaStatus[] = ["aberta", "andamento", "concluida"];
 
@@ -15,22 +16,37 @@ export default function DemandasPage() {
   const demandas = useDemandStore((s) => s.demandas);
   const profiles = useDemandStore((s) => s.profiles);
   const addDemanda = useDemandStore((s) => s.addDemanda);
+  const updateDemanda = useDemandStore((s) => s.updateDemanda);
+  const items = useAxisStore((s) => s.items);
+  const initItems = useAxisStore((s) => s.init);
   const [open, setOpen] = useState<Demanda | null>(null);
   const [newTitle, setNewTitle] = useState("");
 
   useEffect(() => {
     init();
-  }, [init]);
+    initItems();
+  }, [init, initItems]);
 
   function emailFor(id: string | null) {
     if (!id) return null;
     return profiles.find((p) => p.id === id)?.email.split("@")[0] ?? null;
   }
 
+  function itemTitleFor(id: string | null) {
+    if (!id) return null;
+    return items.find((it) => it.id === id)?.title ?? null;
+  }
+
   async function quickCreate() {
     if (!newTitle.trim()) return;
     await addDemanda({ title: newTitle });
     setNewTitle("");
+  }
+
+  function handleDrop(e: React.DragEvent, status: DemandaStatus) {
+    e.preventDefault();
+    const id = e.dataTransfer.getData("text/plain");
+    if (id) updateDemanda(id, { status });
   }
 
   return (
@@ -65,14 +81,20 @@ export default function DemandasPage() {
               {DEMANDA_STATUS_LABEL[status]} (
               {demandas.filter((d) => d.status === status).length})
             </h2>
-            <div className="glass flex min-h-[160px] flex-col gap-2 rounded-2xl p-2">
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => handleDrop(e, status)}
+              className="glass flex min-h-[160px] flex-col gap-2 rounded-2xl p-2 transition-colors"
+            >
               {demandas
                 .filter((d) => d.status === status)
                 .map((d) => (
-                  <button
+                  <div
                     key={d.id}
+                    draggable
+                    onDragStart={(e) => e.dataTransfer.setData("text/plain", d.id)}
                     onClick={() => setOpen(d)}
-                    className={`rounded-xl border p-3 text-left text-xs shadow-sm ${DEMANDA_STATUS_COLOR[d.status]}`}
+                    className={`cursor-grab rounded-xl border p-3 text-left text-xs shadow-sm active:cursor-grabbing ${DEMANDA_STATUS_COLOR[d.status]}`}
                   >
                     <div className="mb-1.5 font-semibold">{d.title}</div>
                     <div className="flex flex-wrap items-center gap-2 text-[10px] opacity-80">
@@ -93,13 +115,22 @@ export default function DemandasPage() {
                           {d.attachments.length}
                         </span>
                       )}
+                      {itemTitleFor(d.linkedItemId) && (
+                        <span
+                          className="flex max-w-[140px] items-center gap-1 truncate rounded-full bg-white/60 px-2 py-0.5 font-medium"
+                          title={itemTitleFor(d.linkedItemId) ?? undefined}
+                        >
+                          <Link2 size={10} />
+                          {itemTitleFor(d.linkedItemId)}
+                        </span>
+                      )}
                       {(d.reactions ?? []).length > 0 && (
                         <span className="rounded-full bg-white/60 px-2 py-0.5 font-medium">
                           {Array.from(new Set((d.reactions ?? []).map((r) => r.emoji))).join(" ")}
                         </span>
                       )}
                     </div>
-                  </button>
+                  </div>
                 ))}
             </div>
           </div>

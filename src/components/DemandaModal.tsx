@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useDemandStore } from "@/lib/demandStore";
+import { useAxisStore } from "@/lib/store";
 import { createClient } from "@/lib/supabase/client";
 import { Demanda, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes";
+import { TYPE_LABEL } from "@/lib/types";
 import ReactionBar from "./ReactionBar";
-import { X, Trash2, Paperclip, Loader2, Send, FileText } from "lucide-react";
+import { X, Trash2, Paperclip, Loader2, Send, FileText, Link2 } from "lucide-react";
 
 const STATUSES: DemandaStatus[] = ["aberta", "andamento", "concluida"];
 const supabase = createClient();
@@ -20,6 +22,7 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
   const addComment = useDemandStore((s) => s.addComment);
   const toggleReaction = useDemandStore((s) => s.toggleReaction);
   const comments = useDemandStore((s) => s.comments[demanda.id] ?? []);
+  const items = useAxisStore((s) => s.items);
 
   const [title, setTitle] = useState(demanda.title);
   const [description, setDescription] = useState(demanda.description ?? "");
@@ -29,6 +32,7 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
   const [uploading, setUploading] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [myId, setMyId] = useState<string | null>(null);
+  const [linkedItemId, setLinkedItemId] = useState(demanda.linkedItemId ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -147,6 +151,28 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
               reactions={demanda.reactions ?? []}
               onToggle={(emoji) => toggleReaction(demanda.id, emoji)}
             />
+          </div>
+
+          <div className="mb-4">
+            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#101a2e]/50">
+              <Link2 size={12} />
+              Vincular a um item
+            </span>
+            <select
+              value={linkedItemId}
+              onChange={(e) => {
+                setLinkedItemId(e.target.value);
+                persist({ linkedItemId: e.target.value || null });
+              }}
+              className="w-full rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+            >
+              <option value="">Nenhum</option>
+              {items.map((it) => (
+                <option key={it.id} value={it.id}>
+                  {TYPE_LABEL[it.type]} · {it.title}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="mb-4">

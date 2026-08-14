@@ -26,6 +26,7 @@ export interface Demanda {
   dueDate: string | null;
   attachments: Attachment[];
   reactions: Reaction[];
+  linkedItemId: string | null;
   createdAt: string;
   updatedAt: string;
 }
