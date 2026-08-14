@@ -22,10 +22,10 @@ export default function ItemChip({ item, onUnschedule }: { item: Item; onUnsched
             e.stopPropagation();
             toggleDone(item.id);
           }}
-          className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-current"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-current"
           title="Marcar como feito"
         >
-          {item.done && <Check size={9} />}
+          {item.done && <Check size={11} />}
         </button>
         <button onClick={() => setOpen(true)} className="min-w-0 flex-1 truncate text-left" title={item.title}>
           {item.time ? `${item.time} · ` : ""}
@@ -33,11 +33,14 @@ export default function ItemChip({ item, onUnschedule }: { item: Item; onUnsched
         </button>
         {onUnschedule && (
           <button
-            onClick={onUnschedule}
-            className="hidden shrink-0 opacity-60 hover:opacity-100 group-hover:block"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUnschedule();
+            }}
+            className="flex h-6 w-6 shrink-0 items-center justify-center opacity-60 hover:opacity-100"
             title="Voltar pra caixa de ideias"
           >
-            <X size={12} />
+            <X size={13} />
           </button>
         )}
       </div>

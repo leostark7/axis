@@ -102,11 +102,11 @@ export default function AxisChat() {
         <div className="glass fixed bottom-40 right-6 z-40 flex h-[28rem] w-[22rem] max-w-[calc(100vw-3rem)] flex-col overflow-hidden rounded-2xl shadow-2xl">
           <div className="border-b border-[#101a2e]/10 px-4 py-3">
             <div className="text-sm font-bold text-[#101a2e]">✨ Assistente Axis</div>
-            <div className="text-[11px] text-[#101a2e]/40">Pergunte sobre sua agenda e demandas</div>
+            <div className="text-[11px] text-[#101a2e]/60">Pergunte sobre sua agenda e demandas</div>
           </div>
           <div className="flex-1 space-y-2 overflow-y-auto p-3">
             {messages.length === 0 && (
-              <p className="text-xs text-[#101a2e]/35">
+              <p className="text-xs text-[#101a2e]/55">
                 Ex: "o que tenho atrasado?", "resume minhas demandas", "quantos roteiros faltam publicar?"
               </p>
             )}
@@ -123,7 +123,7 @@ export default function AxisChat() {
               </div>
             ))}
             {loading && (
-              <div className="flex items-center gap-1.5 text-xs text-[#101a2e]/40">
+              <div className="flex items-center gap-1.5 text-xs text-[#101a2e]/60">
                 <Loader2 size={12} className="animate-spin" />
                 pensando...
               </div>

@@ -13,7 +13,7 @@ const STAGE_BAR_COLOR: Record<ScriptStage, string> = {
 export default function RoteirosTimeline({ scripts }: { scripts: Item[] }) {
   if (scripts.length === 0) {
     return (
-      <p className="glass rounded-2xl border-dashed p-8 text-center text-sm text-[#101a2e]/35">
+      <p className="glass rounded-2xl border-dashed p-8 text-center text-sm text-[#101a2e]/55">
         Nenhum roteiro pra mostrar na linha do tempo.
       </p>
     );
@@ -23,7 +23,7 @@ export default function RoteirosTimeline({ scripts }: { scripts: Item[] }) {
 
   return (
     <div className="glass flex flex-col gap-3 rounded-2xl p-4">
-      <div className="flex justify-between pl-40 text-[10px] text-[#101a2e]/40">
+      <div className="flex justify-between pl-40 text-[10px] text-[#101a2e]/60">
         {Array.from({ length: totalDays + 1 }, (_, i) => i)
           .filter((i) => i % 2 === 0)
           .map((i) => (
@@ -63,7 +63,7 @@ export default function RoteirosTimeline({ scripts }: { scripts: Item[] }) {
           </div>
         );
       })}
-      <p className="pl-40 text-[10px] text-[#101a2e]/30">
+      <p className="pl-40 text-[10px] text-[#101a2e]/50">
         Barra colorida = etapas já alcançadas. Cinza = etapas futuras, com prazo estimado a partir da criação.
       </p>
     </div>

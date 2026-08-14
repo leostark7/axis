@@ -123,7 +123,7 @@ export default function StatsDashboard() {
           <div key={t} className="flex flex-col items-center gap-1">
             <span className={`h-2.5 w-2.5 rounded-full ${TYPE_DOT[t]}`} />
             <span className="text-sm font-bold text-[#101a2e]">{stats.byType[t]}</span>
-            <span className="text-[10px] text-[#101a2e]/40">{TYPE_LABEL[t]}</span>
+            <span className="text-[10px] text-[#101a2e]/60">{TYPE_LABEL[t]}</span>
           </div>
         ))}
       </div>

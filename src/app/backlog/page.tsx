@@ -52,7 +52,7 @@ export default function BacklogPage() {
 
       <div className="flex flex-col gap-2">
         {backlog.length === 0 && (
-          <p className="glass rounded-2xl border-dashed p-8 text-center text-sm text-[#101a2e]/35">
+          <p className="glass rounded-2xl border-dashed p-8 text-center text-sm text-[#101a2e]/55">
             Nada aqui. Sua caixa de ideias está vazia.
           </p>
         )}
@@ -64,7 +64,7 @@ export default function BacklogPage() {
             <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${TYPE_COLOR[it.type]}`} />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-[#101a2e]">{it.title}</div>
-              <div className="text-[11px] text-[#101a2e]/40">{TYPE_LABEL[it.type]}</div>
+              <div className="text-[11px] text-[#101a2e]/60">{TYPE_LABEL[it.type]}</div>
             </div>
             <button
               onClick={() => scheduleToday(it)}

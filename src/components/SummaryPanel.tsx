@@ -92,7 +92,7 @@ export default function SummaryPanel() {
       {text ? (
         <p className="whitespace-pre-line text-sm text-[#101a2e]/75">{text}</p>
       ) : (
-        <p className="text-xs text-[#101a2e]/35">
+        <p className="text-xs text-[#101a2e]/55">
           Clique num dos botões pra IA analisar sua agenda e te dar um panorama rápido.
         </p>
       )}

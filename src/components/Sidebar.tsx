@@ -74,7 +74,7 @@ export default function Sidebar() {
             </div>
             <div>
               <div className="text-base font-bold leading-tight glow-text">Axis</div>
-              <div className="text-[10px] uppercase tracking-widest text-[#101a2e]/40 leading-tight">
+              <div className="text-[10px] uppercase tracking-widest text-[#101a2e]/60 leading-tight">
                 LS Brainstorm
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function Sidebar() {
 
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-[#101a2e]/10 px-2 pt-4">
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className="truncate text-xs text-[#101a2e]/40" title={email ?? ""}>
+            <span className="truncate text-xs text-[#101a2e]/60" title={email ?? ""}>
               {email ?? ""}
             </span>
             <InstalledBadge />
@@ -116,7 +116,7 @@ export default function Sidebar() {
           <button
             onClick={handleLogout}
             title="Sair"
-            className="shrink-0 rounded-lg p-1.5 text-[#101a2e]/40 transition hover:bg-[#101a2e]/10 hover:text-[#101a2e]"
+            className="shrink-0 rounded-lg p-1.5 text-[#101a2e]/60 transition hover:bg-[#101a2e]/10 hover:text-[#101a2e]"
           >
             <LogOut size={14} />
           </button>

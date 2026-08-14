@@ -73,7 +73,7 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
         className="glass flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-[#101a2e]/10 px-6 py-4">
-          <span className="text-xs font-semibold uppercase tracking-wide text-[#101a2e]/40">
+          <span className="text-xs font-semibold uppercase tracking-wide text-[#101a2e]/60">
             Demanda
           </span>
           <button onClick={onClose} className="rounded-lg p-1.5 text-[#101a2e]/50 hover:bg-[#101a2e]/10">
@@ -157,7 +157,7 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
             </div>
             <div className="flex flex-col gap-1.5">
               {demanda.attachments.length === 0 && (
-                <p className="text-xs text-[#101a2e]/30">Nenhum arquivo anexado.</p>
+                <p className="text-xs text-[#101a2e]/50">Nenhum arquivo anexado.</p>
               )}
               {demanda.attachments.map((a) => (
                 <div
@@ -173,10 +173,10 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
                   >
                     {a.name}
                   </a>
-                  <span className="shrink-0 text-[#101a2e]/40">{(a.size / 1024).toFixed(0)} KB</span>
+                  <span className="shrink-0 text-[#101a2e]/60">{(a.size / 1024).toFixed(0)} KB</span>
                   <button
                     onClick={() => removeAttachment(demanda.id, a.url)}
-                    className="shrink-0 text-[#101a2e]/40 hover:text-red-500"
+                    className="shrink-0 text-[#101a2e]/60 hover:text-red-500"
                   >
                     <X size={13} />
                   </button>
@@ -191,7 +191,7 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
             </span>
             <div className="mb-2 flex flex-col gap-2">
               {comments.length === 0 && (
-                <p className="text-xs text-[#101a2e]/30">Nenhum comentário ainda.</p>
+                <p className="text-xs text-[#101a2e]/50">Nenhum comentário ainda.</p>
               )}
               {comments.map((c) => (
                 <div key={c.id} className="rounded-lg bg-[#101a2e]/5 px-3 py-2 text-xs">

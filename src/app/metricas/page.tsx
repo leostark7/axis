@@ -64,7 +64,7 @@ export default function MetricasPage() {
                 className="w-full min-h-[4px] rounded-t-md bg-gradient-to-t from-blue-600 to-cyan-400"
                 title={`${w.total} concluídos`}
               />
-              <span className="text-[9px] text-[#101a2e]/35">{format(w.start, "d/M", { locale: ptBR })}</span>
+              <span className="text-[9px] text-[#101a2e]/55">{format(w.start, "d/M", { locale: ptBR })}</span>
             </div>
           ))}
         </div>

@@ -56,7 +56,7 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
         className="glass w-full max-w-md rounded-3xl p-6 shadow-2xl"
       >
         <div className="mb-4 flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wide text-[#101a2e]/40">
+          <span className="text-xs font-semibold uppercase tracking-wide text-[#101a2e]/60">
             Editar {TYPE_LABEL[type]}
           </span>
           <button

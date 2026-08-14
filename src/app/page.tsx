@@ -123,9 +123,7 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        <SummaryPanel />
         <Radar />
-        <StatsDashboard />
 
         <div className="mb-5">
           <QuickAdd />
@@ -189,6 +187,11 @@ export default function CalendarPage() {
             );
           })}
         </div>
+
+        <div className="mt-5">
+          <StatsDashboard />
+          <SummaryPanel />
+        </div>
       </div>
 
       {selectedDay && (
@@ -197,10 +200,10 @@ export default function CalendarPage() {
 
       <div className="glass hidden w-72 shrink-0 flex-col gap-2 border-l p-4 md:flex">
         <h2 className="text-sm font-bold text-[#101a2e]/80">✨ Caixa de Ideias</h2>
-        <p className="text-xs text-[#101a2e]/40">Arraste para um dia do calendário.</p>
+        <p className="text-xs text-[#101a2e]/60">Arraste para um dia do calendário.</p>
         <div className="flex flex-col gap-2 overflow-y-auto">
           {backlog.length === 0 && (
-            <p className="text-xs text-[#101a2e]/30">Nada solto por aqui. Use a captura rápida.</p>
+            <p className="text-xs text-[#101a2e]/50">Nada solto por aqui. Use a captura rápida.</p>
           )}
           {backlog.map((it) => (
             <div

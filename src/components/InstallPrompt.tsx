@@ -47,7 +47,7 @@ export default function InstallPrompt() {
   }
 
   return (
-    <div className="glass fixed bottom-6 left-1/2 z-40 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-3 rounded-2xl p-3 shadow-xl md:bottom-6 md:left-6 md:translate-x-0">
+    <div className="glass fixed left-1/2 top-[calc(env(safe-area-inset-top)+3.5rem)] z-40 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 items-center gap-3 rounded-2xl p-3 shadow-xl md:bottom-6 md:left-6 md:top-auto md:translate-x-0">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 text-white">
         <Download size={16} />
       </div>
@@ -61,7 +61,7 @@ export default function InstallPrompt() {
       >
         Instalar
       </button>
-      <button onClick={dismiss} className="shrink-0 text-[#101a2e]/40 hover:text-[#101a2e]">
+      <button onClick={dismiss} className="shrink-0 text-[#101a2e]/60 hover:text-[#101a2e]">
         <X size={15} />
       </button>
     </div>

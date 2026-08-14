@@ -37,7 +37,7 @@ export default function DayModal({
         </div>
         <div className="flex flex-col gap-2 overflow-y-auto">
           {items.length === 0 && (
-            <p className="text-sm text-[#101a2e]/35">Nada agendado pra esse dia.</p>
+            <p className="text-sm text-[#101a2e]/55">Nada agendado pra esse dia.</p>
           )}
           {items.map((it) => (
             <div key={it.id} className="text-sm">

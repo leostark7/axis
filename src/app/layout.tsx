@@ -7,6 +7,7 @@ import GlobalQuickAdd from "@/components/GlobalQuickAdd";
 import Reminders from "@/components/Reminders";
 import InstallPrompt from "@/components/InstallPrompt";
 import AxisChat from "@/components/AxisChat";
+import LoadingBar from "@/components/LoadingBar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col text-[#101a2e] md:flex-row">
         <div className="axis-bg" />
+        <LoadingBar />
         <StoreInit />
         <PwaRegister />
         <Reminders />

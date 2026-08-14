@@ -40,7 +40,7 @@ export default function LoginPage() {
           </div>
           <div className="text-center">
             <div className="text-xl font-bold glow-text">Axis</div>
-            <div className="text-xs uppercase tracking-widest text-[#101a2e]/40">
+            <div className="text-xs uppercase tracking-widest text-[#101a2e]/60">
               LS Brainstorm
             </div>
           </div>
