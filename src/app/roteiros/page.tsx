@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { addDays, differenceInCalendarDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAxisStore } from "@/lib/store";
+import { useClientStore } from "@/lib/clientStore";
 import {
   Item,
   SCRIPT_STAGE_LABEL,
@@ -14,7 +15,7 @@ import {
 import QuickAdd from "@/components/QuickAdd";
 import Teleprompter from "@/components/Teleprompter";
 import RoteirosTimeline from "@/components/RoteirosTimeline";
-import { Trash2, Presentation } from "lucide-react";
+import { Trash2, Presentation, Building2 } from "lucide-react";
 
 const STAGES: ScriptStage[] = ["rascunho", "gravacao", "edicao", "publicacao"];
 type ViewMode = "kanban" | "timeline";
@@ -30,6 +31,17 @@ export default function RoteirosPage() {
   const removeItem = useAxisStore((s) => s.removeItem);
   const [teleprompterItem, setTeleprompterItem] = useState<Item | null>(null);
   const [view, setView] = useState<ViewMode>("kanban");
+  const clients = useClientStore((s) => s.clients);
+  const initClients = useClientStore((s) => s.init);
+
+  useEffect(() => {
+    initClients();
+  }, [initClients]);
+
+  function clientNameFor(id: string | null | undefined) {
+    if (!id) return null;
+    return clients.find((c) => c.id === id)?.name ?? null;
+  }
 
   const scripts = items.filter((it) => it.type === "script");
 
@@ -93,6 +105,12 @@ export default function RoteirosPage() {
                       className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-800 shadow-sm"
                     >
                       <div className="mb-1.5 font-medium">{s.title}</div>
+                      {clientNameFor(s.clientId) && (
+                        <div className="mb-1.5 flex items-center gap-1 text-[10px] font-semibold text-emerald-700/80">
+                          <Building2 size={10} />
+                          {clientNameFor(s.clientId)}
+                        </div>
+                      )}
                       <div
                         className={`mb-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                           overdue

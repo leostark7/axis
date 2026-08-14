@@ -5,9 +5,10 @@ import { differenceInCalendarDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDemandStore } from "@/lib/demandStore";
 import { useAxisStore } from "@/lib/store";
+import { useClientStore } from "@/lib/clientStore";
 import { Demanda, DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes";
 import DemandaModal from "@/components/DemandaModal";
-import { Plus, Paperclip, Link2, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Paperclip, Link2, Building2, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
 
 function overdueDays(dueDate: string | null, status: DemandaStatus) {
   if (!dueDate || status === "concluida") return 0;
@@ -24,13 +25,16 @@ export default function DemandasPage() {
   const updateDemanda = useDemandStore((s) => s.updateDemanda);
   const items = useAxisStore((s) => s.items);
   const initItems = useAxisStore((s) => s.init);
+  const clients = useClientStore((s) => s.clients);
+  const initClients = useClientStore((s) => s.init);
   const [open, setOpen] = useState<Demanda | null>(null);
   const [newTitle, setNewTitle] = useState("");
 
   useEffect(() => {
     init();
     initItems();
-  }, [init, initItems]);
+    initClients();
+  }, [init, initItems, initClients]);
 
   function emailFor(id: string | null) {
     if (!id) return null;
@@ -40,6 +44,11 @@ export default function DemandasPage() {
   function itemTitleFor(id: string | null) {
     if (!id) return null;
     return items.find((it) => it.id === id)?.title ?? null;
+  }
+
+  function clientNameFor(id: string | null) {
+    if (!id) return null;
+    return clients.find((c) => c.id === id)?.name ?? null;
   }
 
   async function quickCreate() {
@@ -112,6 +121,12 @@ export default function DemandasPage() {
                       </div>
                     )}
                     <div className="mb-1.5 font-semibold">{d.title}</div>
+                    {clientNameFor(d.clientId) && (
+                      <div className="mb-1.5 flex items-center gap-1 text-[10px] font-semibold text-blue-700">
+                        <Building2 size={10} />
+                        {clientNameFor(d.clientId)}
+                      </div>
+                    )}
                     <div className="flex flex-wrap items-center gap-2 text-[10px] opacity-80">
                       {emailFor(d.assignedTo) && (
                         <span className="rounded-full bg-white/60 px-2 py-0.5 font-medium">
