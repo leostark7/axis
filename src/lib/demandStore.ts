@@ -2,6 +2,7 @@
 
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
+import { logActivity } from "@/lib/activityLog";
 import { Attachment, Demanda, DemandaComment, DemandaStatus, Profile, Reaction } from "./demandTypes";
 
 const supabase = createClient();
@@ -130,8 +131,10 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
       due_date: input.dueDate ?? null,
       requested_by: user?.id ?? null,
     });
+    logActivity("criou a demanda", "demanda", input.title.trim());
   },
   updateDemanda: async (id, patch) => {
+    const before = get().demandas.find((d) => d.id === id);
     await supabase
       .from("demandas")
       .update({
@@ -144,9 +147,14 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
         ...(patch.reactions !== undefined && { reactions: patch.reactions }),
       })
       .eq("id", id);
+    if (before && patch.status !== undefined && patch.status !== before.status) {
+      logActivity(`moveu a demanda para ${patch.status}`, "demanda", before.title, id);
+    }
   },
   removeDemanda: async (id) => {
+    const demanda = get().demandas.find((d) => d.id === id);
     await supabase.from("demandas").delete().eq("id", id);
+    if (demanda) logActivity("excluiu a demanda", "demanda", demanda.title);
   },
   addAttachment: async (id, attachment) => {
     const demanda = get().demandas.find((d) => d.id === id);
@@ -202,6 +210,8 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
       author_id: user?.id ?? null,
       body: body.trim(),
     });
+    const demanda = get().demandas.find((d) => d.id === demandaId);
+    if (demanda) logActivity("comentou na demanda", "demanda", demanda.title, demandaId);
   },
   toggleReaction: async (id, emoji) => {
     const demanda = get().demandas.find((d) => d.id === id);

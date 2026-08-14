@@ -2,6 +2,14 @@ export type ItemType = "idea" | "task" | "event" | "script";
 
 export type ScriptStage = "rascunho" | "gravacao" | "edicao" | "publicacao";
 
+export type RecurrenceFreq = "daily" | "weekly" | "monthly";
+
+export const RECURRENCE_LABEL: Record<RecurrenceFreq, string> = {
+  daily: "Diariamente",
+  weekly: "Semanalmente",
+  monthly: "Mensalmente",
+};
+
 export interface Reaction {
   emoji: string;
   userId: string;
@@ -21,6 +29,8 @@ export interface Item {
   scriptStage?: ScriptStage;
   done?: boolean;
   reactions?: Reaction[];
+  recurringGroupId?: string | null;
+  recurrenceLabel?: string | null;
 }
 
 export const TYPE_LABEL: Record<ItemType, string> = {

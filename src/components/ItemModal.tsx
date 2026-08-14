@@ -1,24 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Item, ItemType, TYPE_LABEL } from "@/lib/types";
+import { Item, ItemType, RECURRENCE_LABEL, RecurrenceFreq, TYPE_LABEL } from "@/lib/types";
 import { useAxisStore } from "@/lib/store";
 import ReactionBar from "./ReactionBar";
-import { X, Trash2, CalendarPlus } from "lucide-react";
+import { X, Trash2, CalendarPlus, Repeat } from "lucide-react";
 
 const TYPES: ItemType[] = ["idea", "task", "script", "event"];
+const FREQS: RecurrenceFreq[] = ["daily", "weekly", "monthly"];
 
 export default function ItemModal({ item, onClose }: { item: Item; onClose: () => void }) {
   const updateItem = useAxisStore((s) => s.updateItem);
   const removeItem = useAxisStore((s) => s.removeItem);
   const scheduleItem = useAxisStore((s) => s.scheduleItem);
   const toggleReaction = useAxisStore((s) => s.toggleReaction);
+  const applyRecurrence = useAxisStore((s) => s.applyRecurrence);
+  const removeSeries = useAxisStore((s) => s.removeSeries);
 
   const [title, setTitle] = useState(item.title);
   const [notes, setNotes] = useState(item.notes ?? "");
   const [type, setType] = useState<ItemType>(item.type);
   const [date, setDate] = useState(item.date ?? "");
   const [time, setTime] = useState(item.time ?? "");
+  const [freq, setFreq] = useState<RecurrenceFreq>("weekly");
+  const [applyingRecurrence, setApplyingRecurrence] = useState(false);
 
   useEffect(() => {
     setTitle(item.title);
@@ -44,6 +49,19 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
 
   async function handleDelete() {
     await removeItem(item.id);
+    onClose();
+  }
+
+  async function handleApplyRecurrence() {
+    if (!date) return;
+    setApplyingRecurrence(true);
+    await applyRecurrence(item.id, freq, 12);
+    setApplyingRecurrence(false);
+  }
+
+  async function handleDeleteSeries() {
+    if (!item.recurringGroupId) return;
+    await removeSeries(item.recurringGroupId);
     onClose();
   }
 
@@ -112,6 +130,47 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
         <div className="mb-3">
           <ReactionBar reactions={item.reactions ?? []} onToggle={(emoji) => toggleReaction(item.id, emoji)} />
         </div>
+
+        {date && (
+          <div className="mb-3 rounded-xl border border-[#101a2e]/10 bg-[#101a2e]/[0.03] p-3">
+            {item.recurringGroupId ? (
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-1.5 font-medium text-blue-600">
+                  <Repeat size={13} />
+                  Repete {item.recurrenceLabel?.toLowerCase()}
+                </span>
+                <button
+                  onClick={handleDeleteSeries}
+                  className="font-medium text-red-500 hover:underline"
+                >
+                  Excluir série inteira
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Repeat size={13} className="shrink-0 text-[#101a2e]/40" />
+                <select
+                  value={freq}
+                  onChange={(e) => setFreq(e.target.value as RecurrenceFreq)}
+                  className="flex-1 rounded-lg bg-white/70 px-2 py-1.5 text-xs text-[#101a2e] outline-none"
+                >
+                  {FREQS.map((f) => (
+                    <option key={f} value={f}>
+                      {RECURRENCE_LABEL[f]}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleApplyRecurrence}
+                  disabled={applyingRecurrence}
+                  className="shrink-0 rounded-lg bg-blue-100 px-2.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-200 disabled:opacity-60"
+                >
+                  {applyingRecurrence ? "Aplicando..." : "Repetir (12x)"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {!date && (
           <button

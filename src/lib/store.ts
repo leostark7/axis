@@ -1,8 +1,10 @@
 "use client";
 
 import { create } from "zustand";
+import { addDays, addMonths, addWeeks, format } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
-import { Item, ItemType, Reaction, ScriptStage } from "./types";
+import { logActivity } from "@/lib/activityLog";
+import { Item, ItemType, Reaction, RecurrenceFreq, RECURRENCE_LABEL, ScriptStage } from "./types";
 
 const supabase = createClient();
 
@@ -18,6 +20,8 @@ type Row = {
   created_at: string;
   updated_at: string;
   reactions: Reaction[] | null;
+  recurring_group_id: string | null;
+  recurrence_label: string | null;
 };
 
 function fromRow(row: Row): Item {
@@ -33,6 +37,8 @@ function fromRow(row: Row): Item {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     reactions: row.reactions ?? [],
+    recurringGroupId: row.recurring_group_id,
+    recurrenceLabel: row.recurrence_label,
   };
 }
 
@@ -54,6 +60,8 @@ interface AxisState {
   setScriptStage: (id: string, stage: ScriptStage) => Promise<void>;
   toggleDone: (id: string) => Promise<void>;
   toggleReaction: (id: string, emoji: string) => Promise<void>;
+  applyRecurrence: (id: string, freq: RecurrenceFreq, occurrences: number) => Promise<void>;
+  removeSeries: (recurringGroupId: string) => Promise<void>;
 }
 
 let initPromise: Promise<void> | null = null;
@@ -111,6 +119,7 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
       script_stage: input.type === "script" ? "rascunho" : null,
       created_by: user?.id ?? null,
     });
+    logActivity("criou", "item", input.title.trim());
   },
   updateItem: async (id, patch) => {
     await supabase
@@ -123,22 +132,29 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
         ...(patch.done !== undefined && { done: patch.done }),
         ...(patch.scriptStage !== undefined && { script_stage: patch.scriptStage }),
         ...(patch.reactions !== undefined && { reactions: patch.reactions }),
+        ...(patch.recurringGroupId !== undefined && { recurring_group_id: patch.recurringGroupId }),
+        ...(patch.recurrenceLabel !== undefined && { recurrence_label: patch.recurrenceLabel }),
       })
       .eq("id", id);
   },
   removeItem: async (id) => {
+    const item = get().items.find((it) => it.id === id);
     await supabase.from("items").delete().eq("id", id);
+    if (item) logActivity("excluiu", "item", item.title);
   },
   scheduleItem: async (id, date) => {
     await get().updateItem(id, { date });
   },
   setScriptStage: async (id, stage) => {
+    const item = get().items.find((it) => it.id === id);
     await get().updateItem(id, { scriptStage: stage });
+    if (item) logActivity(`moveu para ${stage}`, "item", item.title, id);
   },
   toggleDone: async (id) => {
     const item = get().items.find((it) => it.id === id);
     if (!item) return;
     await get().updateItem(id, { done: !item.done });
+    logActivity(item.done ? "reabriu" : "concluiu", "item", item.title, id);
   },
   toggleReaction: async (id, emoji) => {
     const item = get().items.find((it) => it.id === id);
@@ -153,5 +169,41 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
       ? existing.filter((r) => !(r.emoji === emoji && r.userId === user.id))
       : [...existing, { emoji, userId: user.id }];
     await get().updateItem(id, { reactions: next });
+  },
+  applyRecurrence: async (id, freq, occurrences) => {
+    const item = get().items.find((it) => it.id === id);
+    if (!item || !item.date) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const groupId = crypto.randomUUID();
+    const step = (d: Date) =>
+      freq === "daily" ? addDays(d, 1) : freq === "weekly" ? addWeeks(d, 1) : addMonths(d, 1);
+
+    let cursor = new Date(item.date + "T00:00:00");
+    const rows = [];
+    for (let i = 0; i < occurrences; i++) {
+      cursor = step(cursor);
+      rows.push({
+        title: item.title,
+        type: item.type,
+        date: format(cursor, "yyyy-MM-dd"),
+        time: item.time ?? null,
+        notes: item.notes ?? null,
+        script_stage: item.type === "script" ? "rascunho" : null,
+        created_by: user?.id ?? null,
+        recurring_group_id: groupId,
+        recurrence_label: RECURRENCE_LABEL[freq],
+      });
+    }
+
+    await supabase.from("items").insert(rows);
+    await get().updateItem(id, { recurringGroupId: groupId, recurrenceLabel: RECURRENCE_LABEL[freq] });
+    logActivity(`ativou repetição (${RECURRENCE_LABEL[freq].toLowerCase()})`, "item", item.title, id);
+  },
+  removeSeries: async (recurringGroupId) => {
+    await supabase.from("items").delete().eq("recurring_group_id", recurringGroupId);
+    logActivity("excluiu a série inteira de", "item", "itens recorrentes");
   },
 }));

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Item, TYPE_COLOR_SOFT } from "@/lib/types";
 import { useAxisStore } from "@/lib/store";
-import { X, Check } from "lucide-react";
+import { X, Check, Repeat } from "lucide-react";
 import ItemModal from "./ItemModal";
 
 export default function ItemChip({ item, onUnschedule }: { item: Item; onUnschedule?: () => void }) {
@@ -27,7 +27,8 @@ export default function ItemChip({ item, onUnschedule }: { item: Item; onUnsched
         >
           {item.done && <Check size={11} />}
         </button>
-        <button onClick={() => setOpen(true)} className="min-w-0 flex-1 truncate text-left" title={item.title}>
+        <button onClick={() => setOpen(true)} className="flex min-w-0 flex-1 items-center gap-1 truncate text-left" title={item.title}>
+          {item.recurringGroupId && <Repeat size={10} className="shrink-0" />}
           {item.time ? `${item.time} · ` : ""}
           {item.title}
         </button>
