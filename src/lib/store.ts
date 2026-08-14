@@ -56,6 +56,7 @@ interface AxisState {
     date?: string | null;
     time?: string | null;
     notes?: string;
+    clientId?: string | null;
   }) => Promise<void>;
   updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
   removeItem: (id: string) => Promise<void>;
@@ -122,6 +123,7 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
       time: input.time ?? null,
       notes: input.notes ?? null,
       script_stage: input.type === "script" ? "rascunho" : null,
+      client_id: input.clientId ?? null,
       created_by: user?.id ?? null,
     });
     logActivity("criou", "item", input.title.trim());

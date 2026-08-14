@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAxisStore } from "@/lib/store";
+import { useClientStore } from "@/lib/clientStore";
 import { classifyText } from "@/lib/classify";
 import { ItemType, TYPE_LABEL } from "@/lib/types";
 import VoiceButton from "./VoiceButton";
@@ -13,7 +14,13 @@ const TYPES: ItemType[] = ["idea", "task", "script", "event"];
 export default function GlobalQuickAdd() {
   const pathname = usePathname();
   const addItem = useAxisStore((s) => s.addItem);
+  const clients = useClientStore((s) => s.clients);
+  const initClients = useClientStore((s) => s.init);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    initClients();
+  }, [initClients]);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ItemType>("idea");
   const [aiLoading, setAiLoading] = useState(false);
@@ -58,10 +65,19 @@ export default function GlobalQuickAdd() {
     const text = overrideText ?? title;
     if (!text.trim()) return;
     setAiLoading(true);
-    const result = await classifyText(text);
+    const result = await classifyText(text, clients.map((c) => c.name));
     setAiLoading(false);
     if (result) {
-      addItem({ title: result.title, type: result.type, date: result.date, time: result.time });
+      const matchedClient = clients.find(
+        (c) => c.name.toLowerCase() === result.clientName?.toLowerCase()
+      );
+      addItem({
+        title: result.title,
+        type: result.type,
+        date: result.date,
+        time: result.time,
+        clientId: matchedClient?.id ?? null,
+      });
     } else {
       addItem({ title: text, type, date: null });
     }

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAxisStore } from "@/lib/store";
+import { useClientStore } from "@/lib/clientStore";
 import { classifyText } from "@/lib/classify";
 import { ItemType, TYPE_LABEL } from "@/lib/types";
 import VoiceButton from "./VoiceButton";
@@ -11,9 +12,15 @@ const TYPES: ItemType[] = ["idea", "task", "script", "event"];
 
 export default function QuickAdd() {
   const addItem = useAxisStore((s) => s.addItem);
+  const clients = useClientStore((s) => s.clients);
+  const initClients = useClientStore((s) => s.init);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ItemType>("idea");
   const [aiLoading, setAiLoading] = useState(false);
+
+  useEffect(() => {
+    initClients();
+  }, [initClients]);
 
   function submit() {
     if (!title.trim()) return;
@@ -25,10 +32,19 @@ export default function QuickAdd() {
     const text = overrideText ?? title;
     if (!text.trim()) return;
     setAiLoading(true);
-    const result = await classifyText(text);
+    const result = await classifyText(text, clients.map((c) => c.name));
     setAiLoading(false);
     if (result) {
-      addItem({ title: result.title, type: result.type, date: result.date, time: result.time });
+      const matchedClient = clients.find(
+        (c) => c.name.toLowerCase() === result.clientName?.toLowerCase()
+      );
+      addItem({
+        title: result.title,
+        type: result.type,
+        date: result.date,
+        time: result.time,
+        clientId: matchedClient?.id ?? null,
+      });
     } else {
       addItem({ title: text, type, date: null });
     }
@@ -59,7 +75,7 @@ export default function QuickAdd() {
       <button
         onClick={() => submitWithAI()}
         disabled={aiLoading}
-        title="Deixar a IA classificar tipo, data e hora automaticamente"
+        title="Deixar a IA classificar tipo, data, hora e cliente automaticamente"
         className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_6px_16px_-4px_rgba(37,99,235,0.5)] transition hover:brightness-110 disabled:opacity-60"
       >
         {aiLoading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
