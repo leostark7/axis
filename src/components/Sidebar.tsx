@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { CalendarDays, Inbox, Clapperboard, ClipboardList, BarChart3, Zap, LogOut, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { InstalledBadge } from "./InstallPrompt";
+import SemanticSearch from "./SemanticSearch";
 
 const NAV = [
   { href: "/", label: "Calendário", icon: CalendarDays },
@@ -85,6 +86,9 @@ export default function Sidebar() {
           >
             <X size={18} />
           </button>
+        </div>
+        <div className="mb-2">
+          <SemanticSearch />
         </div>
         <nav className="flex flex-col gap-1.5">
           {NAV.map(({ href, label, icon: Icon }) => {

@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
-import { Item, ItemType, ScriptStage } from "./types";
+import { Item, ItemType, Reaction, ScriptStage } from "./types";
 
 const supabase = createClient();
 
@@ -17,6 +17,7 @@ type Row = {
   done: boolean;
   created_at: string;
   updated_at: string;
+  reactions: Reaction[] | null;
 };
 
 function fromRow(row: Row): Item {
@@ -31,6 +32,7 @@ function fromRow(row: Row): Item {
     done: row.done,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    reactions: row.reactions ?? [],
   };
 }
 
@@ -51,6 +53,7 @@ interface AxisState {
   scheduleItem: (id: string, date: string | null) => Promise<void>;
   setScriptStage: (id: string, stage: ScriptStage) => Promise<void>;
   toggleDone: (id: string) => Promise<void>;
+  toggleReaction: (id: string, emoji: string) => Promise<void>;
 }
 
 let initPromise: Promise<void> | null = null;
@@ -119,6 +122,7 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
         ...(patch.time !== undefined && { time: patch.time }),
         ...(patch.done !== undefined && { done: patch.done }),
         ...(patch.scriptStage !== undefined && { script_stage: patch.scriptStage }),
+        ...(patch.reactions !== undefined && { reactions: patch.reactions }),
       })
       .eq("id", id);
   },
@@ -135,5 +139,19 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
     const item = get().items.find((it) => it.id === id);
     if (!item) return;
     await get().updateItem(id, { done: !item.done });
+  },
+  toggleReaction: async (id, emoji) => {
+    const item = get().items.find((it) => it.id === id);
+    if (!item) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const existing = item.reactions ?? [];
+    const already = existing.some((r) => r.emoji === emoji && r.userId === user.id);
+    const next = already
+      ? existing.filter((r) => !(r.emoji === emoji && r.userId === user.id))
+      : [...existing, { emoji, userId: user.id }];
+    await get().updateItem(id, { reactions: next });
   },
 }));

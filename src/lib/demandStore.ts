@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { createClient } from "@/lib/supabase/client";
-import { Attachment, Demanda, DemandaComment, DemandaStatus, Profile } from "./demandTypes";
+import { Attachment, Demanda, DemandaComment, DemandaStatus, Profile, Reaction } from "./demandTypes";
 
 const supabase = createClient();
 
@@ -15,6 +15,7 @@ type DemandaRow = {
   assigned_to: string | null;
   due_date: string | null;
   attachments: Attachment[];
+  reactions: Reaction[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -37,6 +38,7 @@ function fromRow(row: DemandaRow): Demanda {
     assignedTo: row.assigned_to,
     dueDate: row.due_date,
     attachments: row.attachments ?? [],
+    reactions: row.reactions ?? [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -70,6 +72,7 @@ interface DemandState {
   removeAttachment: (id: string, url: string) => Promise<void>;
   loadComments: (demandaId: string) => Promise<void>;
   addComment: (demandaId: string, body: string) => Promise<void>;
+  toggleReaction: (id: string, emoji: string) => Promise<void>;
 }
 
 let initPromise: Promise<void> | null = null;
@@ -138,6 +141,7 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
         ...(patch.assignedTo !== undefined && { assigned_to: patch.assignedTo }),
         ...(patch.dueDate !== undefined && { due_date: patch.dueDate }),
         ...(patch.attachments !== undefined && { attachments: patch.attachments }),
+        ...(patch.reactions !== undefined && { reactions: patch.reactions }),
       })
       .eq("id", id);
   },
@@ -198,5 +202,19 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
       author_id: user?.id ?? null,
       body: body.trim(),
     });
+  },
+  toggleReaction: async (id, emoji) => {
+    const demanda = get().demandas.find((d) => d.id === id);
+    if (!demanda) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const existing = demanda.reactions ?? [];
+    const already = existing.some((r) => r.emoji === emoji && r.userId === user.id);
+    const next = already
+      ? existing.filter((r) => !(r.emoji === emoji && r.userId === user.id))
+      : [...existing, { emoji, userId: user.id }];
+    await get().updateDemanda(id, { reactions: next });
   },
 }));

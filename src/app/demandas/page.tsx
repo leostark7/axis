@@ -93,6 +93,11 @@ export default function DemandasPage() {
                           {d.attachments.length}
                         </span>
                       )}
+                      {(d.reactions ?? []).length > 0 && (
+                        <span className="rounded-full bg-white/60 px-2 py-0.5 font-medium">
+                          {Array.from(new Set((d.reactions ?? []).map((r) => r.emoji))).join(" ")}
+                        </span>
+                      )}
                     </div>
                   </button>
                 ))}

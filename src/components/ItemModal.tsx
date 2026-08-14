@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Item, ItemType, TYPE_LABEL } from "@/lib/types";
 import { useAxisStore } from "@/lib/store";
+import ReactionBar from "./ReactionBar";
 import { X, Trash2, CalendarPlus } from "lucide-react";
 
 const TYPES: ItemType[] = ["idea", "task", "script", "event"];
@@ -11,6 +12,7 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
   const updateItem = useAxisStore((s) => s.updateItem);
   const removeItem = useAxisStore((s) => s.removeItem);
   const scheduleItem = useAxisStore((s) => s.scheduleItem);
+  const toggleReaction = useAxisStore((s) => s.toggleReaction);
 
   const [title, setTitle] = useState(item.title);
   const [notes, setNotes] = useState(item.notes ?? "");
@@ -105,6 +107,10 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
             onChange={(e) => setTime(e.target.value)}
             className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-2 py-2.5 text-xs text-[#101a2e] outline-none"
           />
+        </div>
+
+        <div className="mb-3">
+          <ReactionBar reactions={item.reactions ?? []} onToggle={(emoji) => toggleReaction(item.id, emoji)} />
         </div>
 
         {!date && (

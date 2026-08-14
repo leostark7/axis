@@ -2,6 +2,13 @@ export type ItemType = "idea" | "task" | "event" | "script";
 
 export type ScriptStage = "rascunho" | "gravacao" | "edicao" | "publicacao";
 
+export interface Reaction {
+  emoji: string;
+  userId: string;
+}
+
+export const REACTION_EMOJIS = ["👍", "🔥", "✅", "👀"] as const;
+
 export interface Item {
   id: string;
   title: string;
@@ -13,6 +20,7 @@ export interface Item {
   updatedAt?: string;
   scriptStage?: ScriptStage;
   done?: boolean;
+  reactions?: Reaction[];
 }
 
 export const TYPE_LABEL: Record<ItemType, string> = {

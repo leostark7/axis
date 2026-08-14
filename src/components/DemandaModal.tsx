@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDemandStore } from "@/lib/demandStore";
 import { createClient } from "@/lib/supabase/client";
 import { Demanda, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes";
+import ReactionBar from "./ReactionBar";
 import { X, Trash2, Paperclip, Loader2, Send, FileText } from "lucide-react";
 
 const STATUSES: DemandaStatus[] = ["aberta", "andamento", "concluida"];
@@ -17,6 +18,7 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
   const profiles = useDemandStore((s) => s.profiles);
   const loadComments = useDemandStore((s) => s.loadComments);
   const addComment = useDemandStore((s) => s.addComment);
+  const toggleReaction = useDemandStore((s) => s.toggleReaction);
   const comments = useDemandStore((s) => s.comments[demanda.id] ?? []);
 
   const [title, setTitle] = useState(demanda.title);
@@ -137,6 +139,13 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
                 persist({ dueDate: e.target.value || null });
               }}
               className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-2 py-2.5 text-xs text-[#101a2e] outline-none"
+            />
+          </div>
+
+          <div className="mb-4">
+            <ReactionBar
+              reactions={demanda.reactions ?? []}
+              onToggle={(emoji) => toggleReaction(demanda.id, emoji)}
             />
           </div>
 

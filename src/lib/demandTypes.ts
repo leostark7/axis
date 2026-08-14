@@ -6,6 +6,11 @@ export interface Attachment {
   size: number;
 }
 
+export interface Reaction {
+  emoji: string;
+  userId: string;
+}
+
 export interface Profile {
   id: string;
   email: string;
@@ -20,6 +25,7 @@ export interface Demanda {
   assignedTo: string | null;
   dueDate: string | null;
   attachments: Attachment[];
+  reactions: Reaction[];
   createdAt: string;
   updatedAt: string;
 }
