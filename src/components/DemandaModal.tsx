@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Demanda, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes";
 import { TYPE_LABEL } from "@/lib/types";
 import ReactionBar from "./ReactionBar";
-import { X, Trash2, Paperclip, Loader2, Send, FileText, Link2 } from "lucide-react";
+import AttachmentPreview from "./AttachmentPreview";
+import { X, Trash2, Paperclip, Loader2, Send, Link2 } from "lucide-react";
 
 const STATUSES: DemandaStatus[] = ["aberta", "andamento", "concluida"];
 const supabase = createClient();
@@ -195,27 +196,7 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
                 <p className="text-xs text-[#101a2e]/50">Nenhum arquivo anexado.</p>
               )}
               {demanda.attachments.map((a) => (
-                <div
-                  key={a.url}
-                  className="flex items-center gap-2 rounded-lg border border-[#101a2e]/10 bg-white/50 px-3 py-2 text-xs"
-                >
-                  <FileText size={14} className="shrink-0 text-blue-600" />
-                  <a
-                    href={a.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="min-w-0 flex-1 truncate font-medium text-[#101a2e] hover:underline"
-                  >
-                    {a.name}
-                  </a>
-                  <span className="shrink-0 text-[#101a2e]/60">{(a.size / 1024).toFixed(0)} KB</span>
-                  <button
-                    onClick={() => removeAttachment(demanda.id, a.url)}
-                    className="shrink-0 text-[#101a2e]/60 hover:text-red-500"
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
+                <AttachmentPreview key={a.url} attachment={a} onRemove={() => removeAttachment(demanda.id, a.url)} />
               ))}
             </div>
           </div>

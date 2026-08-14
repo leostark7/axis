@@ -1,13 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { format } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDemandStore } from "@/lib/demandStore";
 import { useAxisStore } from "@/lib/store";
 import { Demanda, DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes";
 import DemandaModal from "@/components/DemandaModal";
-import { Plus, Paperclip, Link2, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Paperclip, Link2, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
+
+function overdueDays(dueDate: string | null, status: DemandaStatus) {
+  if (!dueDate || status === "concluida") return 0;
+  return differenceInCalendarDays(new Date(), new Date(dueDate + "T00:00:00"));
+}
 
 const STATUSES: DemandaStatus[] = ["aberta", "andamento", "concluida"];
 
@@ -88,14 +93,24 @@ export default function DemandasPage() {
             >
               {demandas
                 .filter((d) => d.status === status)
-                .map((d) => (
+                .map((d) => {
+                  const overdue = overdueDays(d.dueDate, d.status);
+                  return (
                   <div
                     key={d.id}
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData("text/plain", d.id)}
                     onClick={() => setOpen(d)}
-                    className={`cursor-grab rounded-xl border p-3 text-left text-xs shadow-sm active:cursor-grabbing ${DEMANDA_STATUS_COLOR[d.status]}`}
+                    className={`cursor-grab rounded-xl border p-3 text-left text-xs shadow-sm active:cursor-grabbing ${
+                      overdue > 0 ? "border-red-400 bg-red-50 ring-1 ring-red-300" : DEMANDA_STATUS_COLOR[d.status]
+                    }`}
                   >
+                    {overdue > 0 && (
+                      <div className="mb-1.5 flex items-center gap-1 text-[10px] font-bold text-red-600">
+                        <AlertTriangle size={11} />
+                        Atrasada há {overdue} {overdue === 1 ? "dia" : "dias"}
+                      </div>
+                    )}
                     <div className="mb-1.5 font-semibold">{d.title}</div>
                     <div className="flex flex-wrap items-center gap-2 text-[10px] opacity-80">
                       {emailFor(d.assignedTo) && (
@@ -131,7 +146,8 @@ export default function DemandasPage() {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         ))}
