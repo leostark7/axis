@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
 
-export type ActivityEntityType = "item" | "demanda";
+export type ActivityEntityType = "item" | "demanda" | "cliente";
 
 export async function logActivity(
   verb: string,

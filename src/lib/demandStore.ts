@@ -19,6 +19,7 @@ type DemandaRow = {
   attachments: Attachment[];
   reactions: Reaction[] | null;
   linked_item_id: string | null;
+  client_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -43,6 +44,7 @@ function fromRow(row: DemandaRow): Demanda {
     attachments: row.attachments ?? [],
     reactions: row.reactions ?? [],
     linkedItemId: row.linked_item_id,
+    clientId: row.client_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -69,6 +71,7 @@ interface DemandState {
     description?: string;
     assignedTo?: string | null;
     dueDate?: string | null;
+    clientId?: string | null;
   }) => Promise<void>;
   updateDemanda: (id: string, patch: Partial<Demanda>) => Promise<void>;
   removeDemanda: (id: string) => Promise<void>;
@@ -132,6 +135,7 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
       description: input.description?.trim() || null,
       assigned_to: input.assignedTo ?? null,
       due_date: input.dueDate ?? null,
+      client_id: input.clientId ?? null,
       requested_by: user?.id ?? null,
     });
     logActivity("criou a demanda", "demanda", input.title.trim());
@@ -149,6 +153,7 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
         ...(patch.attachments !== undefined && { attachments: patch.attachments }),
         ...(patch.reactions !== undefined && { reactions: patch.reactions }),
         ...(patch.linkedItemId !== undefined && { linked_item_id: patch.linkedItemId }),
+        ...(patch.clientId !== undefined && { client_id: patch.clientId }),
       })
       .eq("id", id);
     if (before && patch.status !== undefined && patch.status !== before.status) {
@@ -170,6 +175,7 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
           attachments: demanda.attachments,
           reactions: demanda.reactions,
           linked_item_id: demanda.linkedItemId,
+          client_id: demanda.clientId,
         });
       });
     }

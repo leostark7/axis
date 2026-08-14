@@ -31,6 +31,7 @@ export interface Item {
   reactions?: Reaction[];
   recurringGroupId?: string | null;
   recurrenceLabel?: string | null;
+  clientId?: string | null;
 }
 
 export const TYPE_LABEL: Record<ItemType, string> = {

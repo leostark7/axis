@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { Item, ItemType, RECURRENCE_LABEL, RecurrenceFreq, TYPE_LABEL } from "@/lib/types";
 import { useAxisStore } from "@/lib/store";
+import { useClientStore } from "@/lib/clientStore";
 import ReactionBar from "./ReactionBar";
-import { X, Trash2, CalendarPlus, Repeat } from "lucide-react";
+import { X, Trash2, CalendarPlus, Repeat, Building2 } from "lucide-react";
 
 const TYPES: ItemType[] = ["idea", "task", "script", "event"];
 const FREQS: RecurrenceFreq[] = ["daily", "weekly", "monthly"];
@@ -16,6 +17,8 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
   const toggleReaction = useAxisStore((s) => s.toggleReaction);
   const applyRecurrence = useAxisStore((s) => s.applyRecurrence);
   const removeSeries = useAxisStore((s) => s.removeSeries);
+  const clients = useClientStore((s) => s.clients);
+  const initClients = useClientStore((s) => s.init);
 
   const [title, setTitle] = useState(item.title);
   const [notes, setNotes] = useState(item.notes ?? "");
@@ -24,6 +27,7 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
   const [time, setTime] = useState(item.time ?? "");
   const [freq, setFreq] = useState<RecurrenceFreq>("weekly");
   const [applyingRecurrence, setApplyingRecurrence] = useState(false);
+  const [clientId, setClientId] = useState(item.clientId ?? "");
 
   useEffect(() => {
     setTitle(item.title);
@@ -31,7 +35,12 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
     setType(item.type);
     setDate(item.date ?? "");
     setTime(item.time ?? "");
+    setClientId(item.clientId ?? "");
   }, [item]);
+
+  useEffect(() => {
+    initClients();
+  }, [initClients]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Escape") onClose();
@@ -43,6 +52,7 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
       notes: notes.trim() || undefined,
       date: date || null,
       time: time || null,
+      clientId: clientId || null,
     });
     onClose();
   }
@@ -129,6 +139,25 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
 
         <div className="mb-3">
           <ReactionBar reactions={item.reactions ?? []} onToggle={(emoji) => toggleReaction(item.id, emoji)} />
+        </div>
+
+        <div className="mb-3">
+          <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#101a2e]/50">
+            <Building2 size={12} />
+            Cliente
+          </span>
+          <select
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+            className="w-full rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+          >
+            <option value="">Nenhum</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {date && (

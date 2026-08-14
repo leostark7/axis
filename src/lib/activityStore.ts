@@ -9,7 +9,7 @@ export interface ActivityEntry {
   id: string;
   actorId: string | null;
   verb: string;
-  entityType: "item" | "demanda";
+  entityType: "item" | "demanda" | "cliente";
   entityTitle: string;
   entityId: string | null;
   createdAt: string;
@@ -19,7 +19,7 @@ type Row = {
   id: string;
   actor_id: string | null;
   verb: string;
-  entity_type: "item" | "demanda";
+  entity_type: "item" | "demanda" | "cliente";
   entity_title: string;
   entity_id: string | null;
   created_at: string;

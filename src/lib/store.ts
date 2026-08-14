@@ -23,6 +23,7 @@ type Row = {
   reactions: Reaction[] | null;
   recurring_group_id: string | null;
   recurrence_label: string | null;
+  client_id: string | null;
 };
 
 function fromRow(row: Row): Item {
@@ -40,6 +41,7 @@ function fromRow(row: Row): Item {
     reactions: row.reactions ?? [],
     recurringGroupId: row.recurring_group_id,
     recurrenceLabel: row.recurrence_label,
+    clientId: row.client_id,
   };
 }
 
@@ -137,6 +139,7 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
         ...(patch.reactions !== undefined && { reactions: patch.reactions }),
         ...(patch.recurringGroupId !== undefined && { recurring_group_id: patch.recurringGroupId }),
         ...(patch.recurrenceLabel !== undefined && { recurrence_label: patch.recurrenceLabel }),
+        ...(patch.clientId !== undefined && { client_id: patch.clientId }),
       })
       .eq("id", id);
   },

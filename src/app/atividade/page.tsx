@@ -6,7 +6,7 @@ import { ptBR } from "date-fns/locale";
 import { useActivityStore } from "@/lib/activityStore";
 import { useDemandStore } from "@/lib/demandStore";
 import { createClient } from "@/lib/supabase/client";
-import { ClipboardList, CalendarDays } from "lucide-react";
+import { ClipboardList, CalendarDays, Users } from "lucide-react";
 
 export default function AtividadePage() {
   const init = useActivityStore((s) => s.init);
@@ -63,7 +63,13 @@ export default function AtividadePage() {
               {dayEntries.map((e) => (
                 <div key={e.id} className="flex items-center gap-3 px-4 py-3">
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                    {e.entityType === "demanda" ? <ClipboardList size={14} /> : <CalendarDays size={14} />}
+                    {e.entityType === "demanda" ? (
+                      <ClipboardList size={14} />
+                    ) : e.entityType === "cliente" ? (
+                      <Users size={14} />
+                    ) : (
+                      <CalendarDays size={14} />
+                    )}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-[#101a2e]">

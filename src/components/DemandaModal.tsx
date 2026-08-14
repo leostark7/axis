@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useDemandStore } from "@/lib/demandStore";
 import { useAxisStore } from "@/lib/store";
+import { useClientStore } from "@/lib/clientStore";
 import { createClient } from "@/lib/supabase/client";
 import { Demanda, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes";
 import { TYPE_LABEL } from "@/lib/types";
 import ReactionBar from "./ReactionBar";
 import AttachmentPreview from "./AttachmentPreview";
-import { X, Trash2, Paperclip, Loader2, Send, Link2 } from "lucide-react";
+import { X, Trash2, Paperclip, Loader2, Send, Link2, Building2 } from "lucide-react";
 
 const STATUSES: DemandaStatus[] = ["aberta", "andamento", "concluida"];
 const supabase = createClient();
@@ -24,6 +25,8 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
   const toggleReaction = useDemandStore((s) => s.toggleReaction);
   const comments = useDemandStore((s) => s.comments[demanda.id] ?? []);
   const items = useAxisStore((s) => s.items);
+  const clients = useClientStore((s) => s.clients);
+  const initClients = useClientStore((s) => s.init);
 
   const [title, setTitle] = useState(demanda.title);
   const [description, setDescription] = useState(demanda.description ?? "");
@@ -34,12 +37,14 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
   const [commentText, setCommentText] = useState("");
   const [myId, setMyId] = useState<string | null>(null);
   const [linkedItemId, setLinkedItemId] = useState(demanda.linkedItemId ?? "");
+  const [clientId, setClientId] = useState(demanda.clientId ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadComments(demanda.id);
+    initClients();
     supabase.auth.getUser().then(({ data }) => setMyId(data.user?.id ?? null));
-  }, [demanda.id, loadComments]);
+  }, [demanda.id, loadComments, initClients]);
 
   async function persist(patch: Partial<Demanda>) {
     await updateDemanda(demanda.id, patch);
@@ -152,6 +157,28 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
               reactions={demanda.reactions ?? []}
               onToggle={(emoji) => toggleReaction(demanda.id, emoji)}
             />
+          </div>
+
+          <div className="mb-4">
+            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#101a2e]/50">
+              <Building2 size={12} />
+              Cliente
+            </span>
+            <select
+              value={clientId}
+              onChange={(e) => {
+                setClientId(e.target.value);
+                persist({ clientId: e.target.value || null });
+              }}
+              className="w-full rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+            >
+              <option value="">Nenhum</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="mb-4">
