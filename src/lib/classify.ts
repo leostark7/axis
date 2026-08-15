@@ -6,6 +6,7 @@ export interface Classification {
   date: string | null;
   time: string | null;
   clientName: string | null;
+  emoji: string;
 }
 
 export async function classifyText(text: string, clientNames: string[] = []): Promise<Classification | null> {

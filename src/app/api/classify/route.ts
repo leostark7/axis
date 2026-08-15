@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const SYSTEM_PROMPT = `Você classifica anotações rápidas de uma agenda chamada Axis.
 Dado um texto em português do usuário e uma lista de clientes já cadastrados, retorne APENAS um
 JSON com este formato exato:
-{"type": "idea" | "task" | "event" | "script", "title": string, "date": "YYYY-MM-DD" | null, "time": "HH:mm" | null, "clientName": string | null}
+{"type": "idea" | "task" | "event" | "script", "title": string, "date": "YYYY-MM-DD" | null, "time": "HH:mm" | null, "clientName": string | null, "emoji": string}
 
 Regras:
 - "event": compromissos com outra pessoa, reuniões, ligações — geralmente têm hora.
@@ -14,7 +14,8 @@ Regras:
 - Se não houver data/hora explícita, retorne null para ambos.
 - "title" deve ser o texto limpo, sem as palavras de data/hora redundantes, mantendo a essência.
 - Nunca invente hora se não houver indício.
-- "clientName": se o texto mencionar um cliente que bate (mesmo que parcialmente/case-insensitive) com algum nome da lista de clientes fornecida, retorne o nome EXATO como está na lista. Se não mencionar cliente nenhum ou não bater com a lista, retorne null. Nunca invente um nome de cliente que não esteja na lista.`;
+- "clientName": se o texto mencionar um cliente que bate (mesmo que parcialmente/case-insensitive) com algum nome da lista de clientes fornecida, retorne o nome EXATO como está na lista. Se não mencionar cliente nenhum ou não bater com a lista, retorne null. Nunca invente um nome de cliente que não esteja na lista.
+- "emoji": escolha UM emoji único que representa bem o conteúdo (ex: reunião de negócios = 🤝, roteiro de vídeo = 🎬, ideia = 💡, viagem = ✈️). Nunca deixe vazio.`;
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
       date: parsed.date ?? null,
       time: parsed.time ?? null,
       clientName: typeof parsed.clientName === "string" ? parsed.clientName : null,
+      emoji: typeof parsed.emoji === "string" && parsed.emoji ? parsed.emoji : "📌",
     });
   } catch {
     return NextResponse.json({ error: "Falha ao classificar" }, { status: 500 });

@@ -72,7 +72,7 @@ export default function GlobalQuickAdd() {
         (c) => c.name.toLowerCase() === result.clientName?.toLowerCase()
       );
       addItem({
-        title: result.title,
+        title: `${result.emoji} ${result.title}`,
         type: result.type,
         date: result.date,
         time: result.time,
