@@ -22,7 +22,13 @@ interface SpeechRecognitionLike extends EventTarget {
   onend: (() => void) | null;
 }
 
-export default function VoiceButton({ onResult }: { onResult: (text: string) => void }) {
+export default function VoiceButton({
+  onResult,
+  autoStart,
+}: {
+  onResult: (text: string) => void;
+  autoStart?: number;
+}) {
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(true);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -50,6 +56,21 @@ export default function VoiceButton({ onResult }: { onResult: (text: string) => 
     recognitionRef.current = recognition;
   }, [onResult]);
 
+  function start() {
+    if (!recognitionRef.current || listening) return;
+    try {
+      recognitionRef.current.start();
+      setListening(true);
+    } catch {
+      // already started
+    }
+  }
+
+  useEffect(() => {
+    if (autoStart) start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
+
   if (!supported) return null;
 
   function toggle() {
@@ -58,8 +79,7 @@ export default function VoiceButton({ onResult }: { onResult: (text: string) => 
       recognitionRef.current.stop();
       setListening(false);
     } else {
-      recognitionRef.current.start();
-      setListening(true);
+      start();
     }
   }
 

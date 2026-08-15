@@ -11,13 +11,15 @@ import QuickAdd from "@/components/QuickAdd";
 import SummaryPanel from "@/components/SummaryPanel";
 import Radar from "@/components/Radar";
 import { DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL } from "@/lib/demandTypes";
-import { ArrowRight, AlertTriangle, ClipboardList } from "lucide-react";
+import { useChatUiStore } from "@/lib/chatUiStore";
+import { ArrowRight, AlertTriangle, ClipboardList, Mic } from "lucide-react";
 
 export default function HojePage() {
   const items = useAxisStore((s) => s.items);
   const scheduleItem = useAxisStore((s) => s.scheduleItem);
   const initDemandas = useDemandStore((s) => s.init);
   const demandas = useDemandStore((s) => s.demandas);
+  const openWithVoice = useChatUiStore((s) => s.openWithVoice);
 
   useEffect(() => {
     initDemandas();
@@ -47,6 +49,14 @@ export default function HojePage() {
         {greeting} — {format(now, "EEEE, d 'de' MMMM", { locale: ptBR })}
       </h1>
       <p className="mb-5 text-sm text-[#101a2e]/50">Um resumo do que importa agora.</p>
+
+      <button
+        onClick={openWithVoice}
+        className="mb-5 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 px-4 py-4 text-sm font-semibold text-white shadow-[0_10px_24px_-6px_rgba(37,99,235,0.5)] transition hover:brightness-110 active:scale-[0.99]"
+      >
+        <Mic size={18} />
+        Toque para falar
+      </button>
 
       <div className="mb-5">
         <QuickAdd />

@@ -6,6 +6,7 @@ import { differenceInCalendarDays, format } from "date-fns";
 import { useAxisStore } from "@/lib/store";
 import { useDemandStore } from "@/lib/demandStore";
 import { useClientStore } from "@/lib/clientStore";
+import { useChatUiStore } from "@/lib/chatUiStore";
 import { TYPE_LABEL } from "@/lib/types";
 import { DEMANDA_STATUS_LABEL } from "@/lib/demandTypes";
 import VoiceButton from "./VoiceButton";
@@ -55,7 +56,10 @@ export default function AxisChat() {
   const initDemandas = useDemandStore((s) => s.init);
   const clients = useClientStore((s) => s.clients);
   const initClients = useClientStore((s) => s.init);
-  const [open, setOpen] = useState(false);
+  const open = useChatUiStore((s) => s.open);
+  const setOpen = useChatUiStore((s) => s.setOpen);
+  const toggleOpen = useChatUiStore((s) => s.toggle);
+  const voiceTrigger = useChatUiStore((s) => s.voiceTrigger);
 
   useEffect(() => {
     initDemandas();
@@ -117,7 +121,7 @@ export default function AxisChat() {
   return (
     <>
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggleOpen}
         title="Conversar e capturar com a IA"
         className="fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-500 text-white shadow-[0_10px_24px_-6px_rgba(37,99,235,0.6)] transition hover:scale-105"
       >
@@ -167,7 +171,7 @@ export default function AxisChat() {
               placeholder="Fale ou digite..."
               className="min-w-0 flex-1 rounded-xl bg-[#101a2e]/5 px-3 py-2 text-xs text-[#101a2e] outline-none placeholder-[#101a2e]/35"
             />
-            <VoiceButton onResult={(text) => send(text)} />
+            <VoiceButton onResult={(text) => send(text)} autoStart={voiceTrigger} />
             <button
               onClick={() => send()}
               disabled={loading}
