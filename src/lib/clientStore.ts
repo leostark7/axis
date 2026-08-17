@@ -16,6 +16,8 @@ type Row = {
   contact_phone: string | null;
   status: ClientStatus;
   notes: string | null;
+  cnpj: string | null;
+  address: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -29,6 +31,8 @@ function fromRow(row: Row): Client {
     contactPhone: row.contact_phone,
     status: row.status,
     notes: row.notes,
+    cnpj: row.cnpj ?? null,
+    address: row.address ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -38,7 +42,14 @@ interface ClientState {
   clients: Client[];
   loaded: boolean;
   init: () => Promise<void>;
-  addClient: (input: { name: string; contactName?: string; contactEmail?: string; contactPhone?: string }) => Promise<void>;
+  addClient: (input: {
+    name: string;
+    contactName?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+    cnpj?: string | null;
+    address?: string | null;
+  }) => Promise<void>;
   updateClient: (id: string, patch: Partial<Client>) => Promise<void>;
   removeClient: (id: string) => Promise<void>;
 }
@@ -77,6 +88,8 @@ export const useClientStore = create<ClientState>()((set, get) => ({
       contact_name: input.contactName?.trim() || null,
       contact_email: input.contactEmail?.trim() || null,
       contact_phone: input.contactPhone?.trim() || null,
+      cnpj: input.cnpj?.trim() || null,
+      address: input.address?.trim() || null,
     });
     logActivity("cadastrou o cliente", "cliente", input.name.trim());
   },
@@ -90,6 +103,8 @@ export const useClientStore = create<ClientState>()((set, get) => ({
         ...(patch.contactPhone !== undefined && { contact_phone: patch.contactPhone }),
         ...(patch.status !== undefined && { status: patch.status }),
         ...(patch.notes !== undefined && { notes: patch.notes }),
+        ...(patch.cnpj !== undefined && { cnpj: patch.cnpj }),
+        ...(patch.address !== undefined && { address: patch.address }),
       })
       .eq("id", id);
   },
@@ -106,6 +121,8 @@ export const useClientStore = create<ClientState>()((set, get) => ({
           contact_phone: client.contactPhone,
           status: client.status,
           notes: client.notes,
+          cnpj: client.cnpj,
+          address: client.address,
         });
       });
     }

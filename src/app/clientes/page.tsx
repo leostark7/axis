@@ -6,7 +6,8 @@ import { useClientStore } from "@/lib/clientStore";
 import { useDemandStore } from "@/lib/demandStore";
 import { CLIENT_STATUS_COLOR, CLIENT_STATUS_LABEL } from "@/lib/clientTypes";
 import { exportToCsv } from "@/lib/csv";
-import { Plus, Building2, ChevronRight, Download } from "lucide-react";
+import Krast7ImportModal from "@/components/Krast7ImportModal";
+import { Plus, Building2, ChevronRight, Download, ArrowDownToLine } from "lucide-react";
 
 export default function ClientesPage() {
   const init = useClientStore((s) => s.init);
@@ -15,6 +16,7 @@ export default function ClientesPage() {
   const initDemandas = useDemandStore((s) => s.init);
   const demandas = useDemandStore((s) => s.demandas);
   const [name, setName] = useState("");
+  const [showImport, setShowImport] = useState(false);
 
   useEffect(() => {
     init();
@@ -35,6 +37,16 @@ export default function ClientesPage() {
     <div className="mx-auto max-w-4xl p-6">
       <div className="mb-1 flex items-center justify-between gap-2">
         <h1 className="text-2xl font-bold glow-text">🏢 Clientes</h1>
+        <div className="flex items-center gap-2">
+        <button
+          data-tour="krast7-import"
+          onClick={() => setShowImport(true)}
+          title="Importar empresas já cadastradas no KRAST7"
+          className="flex items-center gap-1.5 rounded-xl border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+        >
+          <ArrowDownToLine size={13} />
+          Importar do KRAST7
+        </button>
         <button
           data-tour="csv-export"
           onClick={() =>
@@ -56,6 +68,7 @@ export default function ClientesPage() {
           <Download size={13} />
           Exportar CSV
         </button>
+        </div>
       </div>
       <p className="mb-5 text-sm text-[#101a2e]/50">
         Cada cliente reúne todos os roteiros e demandas relacionados num só lugar.
@@ -116,6 +129,8 @@ export default function ClientesPage() {
           );
         })}
       </div>
+
+      {showImport && <Krast7ImportModal onClose={() => setShowImport(false)} />}
     </div>
   );
 }

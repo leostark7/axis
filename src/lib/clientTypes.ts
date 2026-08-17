@@ -8,6 +8,8 @@ export interface Client {
   contactPhone: string | null;
   status: ClientStatus;
   notes: string | null;
+  cnpj: string | null;
+  address: string | null;
   createdAt: string;
   updatedAt: string;
 }

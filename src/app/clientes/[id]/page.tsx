@@ -115,6 +115,18 @@ export default function ClienteDetailPage() {
             placeholder="Telefone"
             className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
           />
+          <input
+            defaultValue={client.cnpj ?? ""}
+            onBlur={(e) => updateClient(client.id, { cnpj: e.target.value })}
+            placeholder="CNPJ"
+            className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+          />
+          <input
+            defaultValue={client.address ?? ""}
+            onBlur={(e) => updateClient(client.id, { address: e.target.value })}
+            placeholder="Endereço"
+            className="col-span-2 rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+          />
         </div>
         <textarea
           defaultValue={client.notes ?? ""}
