@@ -16,6 +16,8 @@ type DemandaRow = {
   requested_by: string | null;
   assigned_to: string | null;
   due_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
   attachments: Attachment[];
   reactions: Reaction[] | null;
   linked_item_id: string | null;
@@ -41,6 +43,8 @@ function fromRow(row: DemandaRow): Demanda {
     requestedBy: row.requested_by,
     assignedTo: row.assigned_to,
     dueDate: row.due_date,
+    startTime: row.start_time,
+    endTime: row.end_time,
     attachments: row.attachments ?? [],
     reactions: row.reactions ?? [],
     linkedItemId: row.linked_item_id,
@@ -71,6 +75,8 @@ interface DemandState {
     description?: string;
     assignedTo?: string | null;
     dueDate?: string | null;
+    startTime?: string | null;
+    endTime?: string | null;
     clientId?: string | null;
   }) => Promise<void>;
   updateDemanda: (id: string, patch: Partial<Demanda>) => Promise<void>;
@@ -135,6 +141,8 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
       description: input.description?.trim() || null,
       assigned_to: input.assignedTo ?? null,
       due_date: input.dueDate ?? null,
+      start_time: input.startTime ?? null,
+      end_time: input.endTime ?? null,
       client_id: input.clientId ?? null,
       requested_by: user?.id ?? null,
     });
@@ -150,6 +158,8 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
         ...(patch.status !== undefined && { status: patch.status }),
         ...(patch.assignedTo !== undefined && { assigned_to: patch.assignedTo }),
         ...(patch.dueDate !== undefined && { due_date: patch.dueDate }),
+        ...(patch.startTime !== undefined && { start_time: patch.startTime }),
+        ...(patch.endTime !== undefined && { end_time: patch.endTime }),
         ...(patch.attachments !== undefined && { attachments: patch.attachments }),
         ...(patch.reactions !== undefined && { reactions: patch.reactions }),
         ...(patch.linkedItemId !== undefined && { linked_item_id: patch.linkedItemId }),
@@ -172,6 +182,8 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
           status: demanda.status,
           assigned_to: demanda.assignedTo,
           due_date: demanda.dueDate,
+          start_time: demanda.startTime,
+          end_time: demanda.endTime,
           attachments: demanda.attachments,
           reactions: demanda.reactions,
           linked_item_id: demanda.linkedItemId,

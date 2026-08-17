@@ -10,7 +10,7 @@ import { TYPE_LABEL } from "@/lib/types";
 import ReactionBar from "./ReactionBar";
 import AttachmentPreview from "./AttachmentPreview";
 import { isFileTooLarge } from "@/lib/uploadLimits";
-import { X, Trash2, Paperclip, Loader2, Send, Link2, Building2 } from "lucide-react";
+import { X, Trash2, Paperclip, Loader2, Send, Link2, Building2, Clock } from "lucide-react";
 
 const STATUSES: DemandaStatus[] = ["aberta", "andamento", "concluida"];
 const supabase = createClient();
@@ -33,6 +33,8 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
   const [description, setDescription] = useState(demanda.description ?? "");
   const [assignedTo, setAssignedTo] = useState(demanda.assignedTo ?? "");
   const [dueDate, setDueDate] = useState(demanda.dueDate ?? "");
+  const [startTime, setStartTime] = useState(demanda.startTime ?? "");
+  const [endTime, setEndTime] = useState(demanda.endTime ?? "");
   const [status, setStatus] = useState(demanda.status);
   const [uploading, setUploading] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -156,6 +158,35 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
               }}
               className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-2 py-2.5 text-xs text-[#101a2e] outline-none"
             />
+          </div>
+
+          <div className="mb-4">
+            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#101a2e]/50">
+              <Clock size={12} />
+              Horário de início e fim
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => {
+                  setStartTime(e.target.value);
+                  persist({ startTime: e.target.value || null });
+                }}
+                placeholder="Início"
+                className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+              />
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => {
+                  setEndTime(e.target.value);
+                  persist({ endTime: e.target.value || null });
+                }}
+                placeholder="Fim"
+                className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+              />
+            </div>
           </div>
 
           <div className="mb-4">

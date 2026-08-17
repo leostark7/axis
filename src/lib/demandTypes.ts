@@ -24,6 +24,8 @@ export interface Demanda {
   requestedBy: string | null;
   assignedTo: string | null;
   dueDate: string | null;
+  startTime: string | null;
+  endTime: string | null;
   attachments: Attachment[];
   reactions: Reaction[];
   linkedItemId: string | null;

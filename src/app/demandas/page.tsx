@@ -10,7 +10,13 @@ import { Demanda, DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL, DemandaStatus } fr
 import DemandaModal from "@/components/DemandaModal";
 import DemandaGantt from "@/components/DemandaGantt";
 import { exportToCsv } from "@/lib/csv";
-import { Plus, Paperclip, Link2, Building2, AlertTriangle, Calendar as CalendarIcon, Download, GanttChartSquare, LayoutGrid } from "lucide-react";
+import { Plus, Paperclip, Link2, Building2, AlertTriangle, Calendar as CalendarIcon, Clock, Download, GanttChartSquare, LayoutGrid } from "lucide-react";
+
+function isOverdue(dueDate: string | null, endTime: string | null, status: DemandaStatus) {
+  if (!dueDate || status === "concluida") return false;
+  const deadline = new Date(`${dueDate}T${endTime ?? "23:59"}:00`);
+  return new Date() > deadline;
+}
 
 function overdueDays(dueDate: string | null, status: DemandaStatus) {
   if (!dueDate || status === "concluida") return 0;
@@ -156,6 +162,7 @@ export default function DemandasPage() {
                 .filter((d) => d.status === status)
                 .map((d) => {
                   const overdue = overdueDays(d.dueDate, d.status);
+                  const late = isOverdue(d.dueDate, d.endTime, d.status);
                   return (
                   <div
                     key={d.id}
@@ -163,13 +170,19 @@ export default function DemandasPage() {
                     onDragStart={(e) => e.dataTransfer.setData("text/plain", d.id)}
                     onClick={() => setOpen(d)}
                     className={`cursor-grab rounded-xl border p-3 text-left text-xs shadow-sm active:cursor-grabbing ${
-                      overdue > 0 ? "border-red-400 bg-red-50 ring-1 ring-red-300" : DEMANDA_STATUS_COLOR[d.status]
+                      late ? "border-red-400 bg-red-50 ring-1 ring-red-300" : DEMANDA_STATUS_COLOR[d.status]
                     }`}
                   >
-                    {overdue > 0 && (
+                    {late && (
                       <div className="mb-1.5 flex items-center gap-1 text-[10px] font-bold text-red-600">
                         <AlertTriangle size={11} />
-                        Atrasada há {overdue} {overdue === 1 ? "dia" : "dias"}
+                        Atrasada{overdue > 0 ? ` há ${overdue} ${overdue === 1 ? "dia" : "dias"}` : ""}
+                      </div>
+                    )}
+                    {!late && status !== "concluida" && (
+                      <div className="mb-1.5 flex items-center gap-1 text-[10px] font-bold text-amber-600">
+                        <Clock size={11} />
+                        Pendente
                       </div>
                     )}
                     <div className="mb-1.5 font-semibold">{d.title}</div>
@@ -189,6 +202,12 @@ export default function DemandasPage() {
                         <span className="flex items-center gap-1 rounded-full bg-white/60 px-2 py-0.5 font-medium">
                           <CalendarIcon size={10} />
                           {format(new Date(d.dueDate + "T00:00:00"), "d MMM", { locale: ptBR })}
+                        </span>
+                      )}
+                      {(d.startTime || d.endTime) && (
+                        <span className="flex items-center gap-1 rounded-full bg-white/60 px-2 py-0.5 font-medium">
+                          <Clock size={10} />
+                          {d.startTime ?? "?"}–{d.endTime ?? "?"}
                         </span>
                       )}
                       {d.attachments.length > 0 && (
