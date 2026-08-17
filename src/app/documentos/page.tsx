@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDocumentStore } from "@/lib/documentStore";
 import { useClientStore } from "@/lib/clientStore";
+import { isFileTooLarge } from "@/lib/uploadLimits";
 import { createClient } from "@/lib/supabase/client";
 import { Upload, Loader2, FileText, Trash2, Building2 } from "lucide-react";
 
@@ -35,6 +36,11 @@ export default function DocumentosPage() {
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (isFileTooLarge(file)) {
+      alert("Arquivo maior que 20 MB. Escolha um arquivo menor.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     const path = `${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("documentos").upload(path, file);

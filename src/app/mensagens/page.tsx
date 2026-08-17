@@ -7,6 +7,7 @@ import { useMessageStore } from "@/lib/messageStore";
 import { useDemandStore } from "@/lib/demandStore";
 import { createClient } from "@/lib/supabase/client";
 import VoiceButton from "@/components/VoiceButton";
+import { isFileTooLarge } from "@/lib/uploadLimits";
 import { Send, Paperclip, Loader2, FileText, X } from "lucide-react";
 
 const supabase = createClient();
@@ -61,6 +62,11 @@ export default function MensagensPage() {
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (isFileTooLarge(file)) {
+      alert("Arquivo maior que 20 MB. Escolha um arquivo menor.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     const path = `${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("mensagens").upload(path, file);

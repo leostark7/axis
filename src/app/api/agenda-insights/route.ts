@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/requireAuth";
 
 const SYSTEM_PROMPT = `Você é um analista de produtividade que olha estatísticas de uma agenda
 chamada Axis e escreve uma análise de padrões — não um resumo do dia, e sim tendências.
@@ -8,6 +9,9 @@ qual tipo de item mais se acumula sem ser feito, e UMA sugestão prática basead
 Nunca invente números que não estejam nos dados fornecidos.`;
 
 export async function POST(req: NextRequest) {
+  const { response: authError } = await requireUser();
+  if (authError) return authError;
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "OPENAI_API_KEY não configurada" }, { status: 500 });

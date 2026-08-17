@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/requireAuth";
 
 const SYSTEM_PROMPT = `Você classifica anotações rápidas de uma agenda chamada Axis.
 Dado um texto em português do usuário e uma lista de clientes já cadastrados, retorne APENAS um
@@ -18,6 +19,9 @@ Regras:
 - "emoji": escolha UM emoji único que representa bem o conteúdo (ex: reunião de negócios = 🤝, roteiro de vídeo = 🎬, ideia = 💡, viagem = ✈️). Nunca deixe vazio.`;
 
 export async function POST(req: NextRequest) {
+  const { response: authError } = await requireUser();
+  if (authError) return authError;
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "OPENAI_API_KEY não configurada" }, { status: 500 });

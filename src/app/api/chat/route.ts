@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/requireAuth";
 
 const SYSTEM_PROMPT = `Você é o assistente do Axis, a agenda inteligente da LS Brainstorm.
 Responda em português do Brasil, curto e direto (poucas linhas), como se estivesse
@@ -8,6 +9,9 @@ tem essa informação na agenda. Não use markdown pesado, só texto corrido com
 de linha e "-" para listas simples quando fizer sentido.`;
 
 export async function POST(req: NextRequest) {
+  const { response: authError } = await requireUser();
+  if (authError) return authError;
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "OPENAI_API_KEY não configurada" }, { status: 500 });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/requireAuth";
 
 const SYSTEM_PROMPT = `Você é o buscador semântico do Axis. Vai receber uma pergunta/busca do
 usuário e uma lista de itens (com id, tipo e título/descrição). Retorne APENAS um JSON no formato:
@@ -8,6 +9,9 @@ correspondência exata de palavras. Entenda sinônimos, contexto e datas relativ
 bem, retorne uma lista vazia. Nunca invente um ID que não esteja na lista fornecida.`;
 
 export async function POST(req: NextRequest) {
+  const { response: authError } = await requireUser();
+  if (authError) return authError;
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "OPENAI_API_KEY não configurada" }, { status: 500 });

@@ -9,6 +9,7 @@ import { Demanda, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes"
 import { TYPE_LABEL } from "@/lib/types";
 import ReactionBar from "./ReactionBar";
 import AttachmentPreview from "./AttachmentPreview";
+import { isFileTooLarge } from "@/lib/uploadLimits";
 import { X, Trash2, Paperclip, Loader2, Send, Link2, Building2 } from "lucide-react";
 
 const STATUSES: DemandaStatus[] = ["aberta", "andamento", "concluida"];
@@ -53,6 +54,11 @@ export default function DemandaModal({ demanda, onClose }: { demanda: Demanda; o
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (isFileTooLarge(file)) {
+      alert("Arquivo maior que 20 MB. Escolha um arquivo menor.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
     setUploading(true);
     const path = `${demanda.id}/${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from("demandas").upload(path, file);

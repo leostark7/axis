@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/requireAuth";
 
 const SYSTEM_PROMPT = `Você é o assistente do Axis, uma agenda inteligente. O usuário está numa
 conversa de chat com você. Decida SEMPRE entre duas ações e responda APENAS com um JSON:
@@ -28,6 +29,9 @@ Regras pro "answer":
   dados que não estejam no contexto.`;
 
 export async function POST(req: NextRequest) {
+  const { response: authError } = await requireUser();
+  if (authError) return authError;
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "OPENAI_API_KEY não configurada" }, { status: 500 });
