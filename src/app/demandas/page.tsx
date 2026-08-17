@@ -8,7 +8,9 @@ import { useAxisStore } from "@/lib/store";
 import { useClientStore } from "@/lib/clientStore";
 import { Demanda, DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL, DemandaStatus } from "@/lib/demandTypes";
 import DemandaModal from "@/components/DemandaModal";
-import { Plus, Paperclip, Link2, Building2, AlertTriangle, Calendar as CalendarIcon } from "lucide-react";
+import DemandaGantt from "@/components/DemandaGantt";
+import { exportToCsv } from "@/lib/csv";
+import { Plus, Paperclip, Link2, Building2, AlertTriangle, Calendar as CalendarIcon, Download, GanttChartSquare, LayoutGrid } from "lucide-react";
 
 function overdueDays(dueDate: string | null, status: DemandaStatus) {
   if (!dueDate || status === "concluida") return 0;
@@ -29,6 +31,7 @@ export default function DemandasPage() {
   const initClients = useClientStore((s) => s.init);
   const [open, setOpen] = useState<Demanda | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  const [view, setView] = useState<"kanban" | "gantt">("kanban");
 
   useEffect(() => {
     init();
@@ -65,7 +68,53 @@ export default function DemandasPage() {
 
   return (
     <div className="mx-auto max-w-6xl p-6">
-      <h1 className="mb-1 text-2xl font-bold glow-text">📋 Demandas</h1>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold glow-text">📋 Demandas</h1>
+        <div className="flex items-center gap-2">
+          <div data-tour="gantt-toggle" className="glass flex items-center gap-1 rounded-xl p-1">
+            <button
+              onClick={() => setView("kanban")}
+              title="Ver como quadro"
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
+                view === "kanban" ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white" : "text-[#101a2e]/50"
+              }`}
+            >
+              <LayoutGrid size={12} />
+              Quadro
+            </button>
+            <button
+              onClick={() => setView("gantt")}
+              title="Ver linha do tempo (Gantt) por cliente"
+              className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
+                view === "gantt" ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white" : "text-[#101a2e]/50"
+              }`}
+            >
+              <GanttChartSquare size={12} />
+              Linha do tempo
+            </button>
+          </div>
+          <button
+            onClick={() =>
+              exportToCsv(
+                "demandas.csv",
+                demandas.map((d) => ({
+                  titulo: d.title,
+                  status: DEMANDA_STATUS_LABEL[d.status],
+                  cliente: clientNameFor(d.clientId) ?? "",
+                  responsavel: emailFor(d.assignedTo) ?? "",
+                  prazo: d.dueDate ?? "",
+                  criada_em: d.createdAt,
+                }))
+              )
+            }
+            title="Exportar demandas em CSV"
+            className="flex items-center gap-1.5 rounded-xl border border-[#101a2e]/10 px-3 py-2 text-xs font-medium text-[#101a2e]/60 hover:bg-[#101a2e]/[0.06]"
+          >
+            <Download size={13} />
+            CSV
+          </button>
+        </div>
+      </div>
       <p className="mb-5 text-sm text-[#101a2e]/50">
         O lugar pra pedir e acompanhar demandas entre vocês — anexe documentos, atribua e comente, sem
         precisar do WhatsApp.
@@ -88,6 +137,9 @@ export default function DemandasPage() {
         </button>
       </div>
 
+      {view === "gantt" ? (
+        <DemandaGantt demandas={demandas} clients={clients} onOpen={setOpen} />
+      ) : (
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {STATUSES.map((status) => (
           <div key={status} className="flex flex-col gap-2">
@@ -167,6 +219,7 @@ export default function DemandasPage() {
           </div>
         ))}
       </div>
+      )}
 
       {open && <DemandaModal demanda={open} onClose={() => setOpen(null)} />}
     </div>

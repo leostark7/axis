@@ -9,6 +9,8 @@ import InstallPrompt from "@/components/InstallPrompt";
 import AxisChat from "@/components/AxisChat";
 import LoadingBar from "@/components/LoadingBar";
 import UndoToast from "@/components/UndoToast";
+import CommandPalette from "@/components/CommandPalette";
+import OnboardTour from "@/components/OnboardTour";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -58,6 +60,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <InstallPrompt />
         <AxisChat />
         <UndoToast />
+        <CommandPalette />
+        <OnboardTour />
       </body>
     </html>
   );

@@ -3,6 +3,26 @@
 :root {
   --background: #eef5ff;
   --foreground: #101a2e;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(16, 26, 46, 0.08);
+  --bg-radial-1: rgba(37, 99, 235, 0.3);
+  --bg-radial-2: rgba(6, 182, 212, 0.28);
+  --bg-radial-3: rgba(99, 102, 241, 0.25);
+  --bg-radial-4: rgba(14, 165, 233, 0.25);
+  --bg-base: #eef5ff;
+}
+
+/* Dark mode: whole-page color inversion so every existing hardcoded
+   color (hundreds of Tailwind arbitrary hex classes) flips consistently
+   without retrofitting each component. hue-rotate corrects the invert
+   so blues stay blue instead of turning orange. */
+html[data-theme="dark"] {
+  filter: invert(1) hue-rotate(180deg);
+  background: #0b1220;
+}
+html[data-theme="dark"] img,
+html[data-theme="dark"] video {
+  filter: invert(1) hue-rotate(180deg);
 }
 
 @theme inline {
@@ -24,18 +44,19 @@ body {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(55% 45% at 10% 0%, rgba(37, 99, 235, 0.3), transparent 60%),
-    radial-gradient(50% 40% at 90% 10%, rgba(6, 182, 212, 0.28), transparent 60%),
-    radial-gradient(45% 40% at 30% 100%, rgba(99, 102, 241, 0.25), transparent 60%),
-    radial-gradient(45% 40% at 100% 100%, rgba(14, 165, 233, 0.25), transparent 60%),
-    #eef5ff;
+    radial-gradient(55% 45% at 10% 0%, var(--bg-radial-1), transparent 60%),
+    radial-gradient(50% 40% at 90% 10%, var(--bg-radial-2), transparent 60%),
+    radial-gradient(45% 40% at 30% 100%, var(--bg-radial-3), transparent 60%),
+    radial-gradient(45% 40% at 100% 100%, var(--bg-radial-4), transparent 60%),
+    var(--bg-base);
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(16, 26, 46, 0.08);
+  border: 1px solid var(--glass-border);
+  color: var(--foreground);
 }
 
 .glow-text {
@@ -55,6 +76,24 @@ body {
 }
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .axis-bg {
+    display: none !important;
+  }
+  .print-clean {
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    background: white !important;
+    border: none !important;
+  }
 }
 
 a:focus-visible,

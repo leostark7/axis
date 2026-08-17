@@ -12,7 +12,7 @@ import { DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL } from "@/lib/demandTypes";
 import { TYPE_LABEL } from "@/lib/types";
 import DemandaModal from "@/components/DemandaModal";
 import ItemModal from "@/components/ItemModal";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, FileText } from "lucide-react";
 
 const STATUSES: ClientStatus[] = ["ativo", "pausado", "encerrado"];
 
@@ -58,13 +58,24 @@ export default function ClienteDetailPage() {
 
   return (
     <div className="mx-auto max-w-3xl p-6">
-      <button
-        onClick={() => router.push("/clientes")}
-        className="mb-4 flex items-center gap-1.5 text-xs font-medium text-[#101a2e]/50 hover:text-[#101a2e]"
-      >
-        <ArrowLeft size={14} />
-        Todos os clientes
-      </button>
+      <div className="mb-4 flex items-center justify-between">
+        <button
+          onClick={() => router.push("/clientes")}
+          className="flex items-center gap-1.5 text-xs font-medium text-[#101a2e]/50 hover:text-[#101a2e]"
+        >
+          <ArrowLeft size={14} />
+          Todos os clientes
+        </button>
+        <button
+          data-tour="relatorio-button"
+          onClick={() => router.push(`/clientes/${clientId}/relatorio`)}
+          title="Gerar relatório compartilhável desse cliente (PDF)"
+          className="flex items-center gap-1.5 rounded-xl border border-[#101a2e]/10 px-3 py-2 text-xs font-medium text-[#101a2e]/60 hover:bg-[#101a2e]/[0.06]"
+        >
+          <FileText size={13} />
+          Gerar relatório
+        </button>
+      </div>
 
       <div className="glass mb-6 rounded-2xl p-5">
         <div className="mb-3 flex items-start justify-between gap-2">

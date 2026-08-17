@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useClientStore } from "@/lib/clientStore";
 import { useDemandStore } from "@/lib/demandStore";
 import { CLIENT_STATUS_COLOR, CLIENT_STATUS_LABEL } from "@/lib/clientTypes";
-import { Plus, Building2, ChevronRight } from "lucide-react";
+import { exportToCsv } from "@/lib/csv";
+import { Plus, Building2, ChevronRight, Download } from "lucide-react";
 
 export default function ClientesPage() {
   const init = useClientStore((s) => s.init);
@@ -32,7 +33,30 @@ export default function ClientesPage() {
 
   return (
     <div className="mx-auto max-w-4xl p-6">
-      <h1 className="mb-1 text-2xl font-bold glow-text">🏢 Clientes</h1>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold glow-text">🏢 Clientes</h1>
+        <button
+          data-tour="csv-export"
+          onClick={() =>
+            exportToCsv(
+              "clientes.csv",
+              clients.map((c) => ({
+                nome: c.name,
+                status: CLIENT_STATUS_LABEL[c.status],
+                contato: c.contactName ?? "",
+                email: c.contactEmail ?? "",
+                telefone: c.contactPhone ?? "",
+                demandas_pendentes: demandaCountFor(c.id),
+              }))
+            )
+          }
+          title="Exportar lista de clientes em CSV"
+          className="flex items-center gap-1.5 rounded-xl border border-[#101a2e]/10 px-3 py-2 text-xs font-medium text-[#101a2e]/60 hover:bg-[#101a2e]/[0.06]"
+        >
+          <Download size={13} />
+          Exportar CSV
+        </button>
+      </div>
       <p className="mb-5 text-sm text-[#101a2e]/50">
         Cada cliente reúne todos os roteiros e demandas relacionados num só lugar.
       </p>

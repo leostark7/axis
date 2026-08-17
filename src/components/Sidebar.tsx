@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Sun, CalendarDays, Inbox, Clapperboard, ClipboardList, Building2, MessageSquare, FolderOpen, BarChart3, History, Zap, LogOut, Menu, X } from "lucide-react";
+import { Sun, CalendarDays, Inbox, Clapperboard, ClipboardList, Building2, MessageSquare, FolderOpen, BarChart3, History, Zap, LogOut, Menu, X, LayoutDashboard, Tv, Moon, SunMedium, HelpCircle, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { InstalledBadge } from "./InstallPrompt";
 import SemanticSearch from "./SemanticSearch";
 import PushSubscribeButton from "./PushSubscribeButton";
+import { useThemeStore } from "@/lib/themeStore";
+import { useCommandPaletteStore } from "@/lib/commandPaletteStore";
+import { useOnboardStore } from "@/lib/onboardStore";
 
 const NAV = [
   { href: "/", label: "Hoje", icon: Sun },
+  { href: "/painel", label: "Painel Executivo", icon: LayoutDashboard },
   { href: "/calendario", label: "Calendário", icon: CalendarDays },
   { href: "/mensagens", label: "Mensagens", icon: MessageSquare },
   { href: "/backlog", label: "Caixa de Ideias", icon: Inbox },
@@ -20,6 +24,7 @@ const NAV = [
   { href: "/clientes", label: "Clientes", icon: Building2 },
   { href: "/metricas", label: "Métricas", icon: BarChart3 },
   { href: "/atividade", label: "Atividade", icon: History },
+  { href: "/apresentacao", label: "Modo Apresentação", icon: Tv },
 ];
 
 export default function Sidebar() {
@@ -28,6 +33,10 @@ export default function Sidebar() {
   const supabase = createClient();
   const [email, setEmail] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggle);
+  const openPalette = useCommandPaletteStore((s) => s.open);
+  const startTour = useOnboardStore((s) => s.start);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
@@ -96,13 +105,28 @@ export default function Sidebar() {
         <div className="mb-2">
           <SemanticSearch />
         </div>
-        <nav className="flex flex-col gap-1.5">
+        <button
+          data-tour="command-palette"
+          onClick={openPalette}
+          title="Busca rápida e atalhos (Ctrl+K)"
+          className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-[#101a2e]/10 bg-white/40 px-3.5 py-2 text-xs text-[#101a2e]/50 transition hover:bg-[#101a2e]/[0.06]"
+        >
+          <span className="flex items-center gap-2">
+            <Search size={13} />
+            Comandos rápidos
+          </span>
+          <kbd className="rounded-md border border-[#101a2e]/15 bg-white/60 px-1.5 py-0.5 text-[10px] font-semibold">
+            Ctrl K
+          </kbd>
+        </button>
+        <nav data-tour="nav" className="flex flex-col gap-1.5">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
             return (
               <Link
                 key={href}
                 href={href}
+                title={label}
                 className={`group relative flex items-center gap-2.5 overflow-hidden rounded-xl px-3.5 py-2.5 text-sm transition-all ${
                   active
                     ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-medium shadow-[0_6px_16px_-4px_rgba(37,99,235,0.5)]"
@@ -118,6 +142,25 @@ export default function Sidebar() {
 
         <div className="mt-auto flex flex-col gap-2 border-t border-[#101a2e]/10 pt-4">
           <PushSubscribeButton />
+          <div className="flex items-center gap-2">
+            <button
+              data-tour="theme-toggle"
+              onClick={toggleTheme}
+              title={theme === "light" ? "Ativar modo escuro" : "Ativar modo claro"}
+              className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[#101a2e]/10 px-3 py-2 text-xs font-medium text-[#101a2e]/60 hover:bg-[#101a2e]/[0.06]"
+            >
+              {theme === "light" ? <Moon size={13} /> : <SunMedium size={13} />}
+              {theme === "light" ? "Escuro" : "Claro"}
+            </button>
+            <button
+              data-tour="help"
+              onClick={startTour}
+              title="Ver tour guiado da plataforma"
+              className="flex items-center justify-center rounded-xl border border-[#101a2e]/10 px-3 py-2 text-[#101a2e]/60 hover:bg-[#101a2e]/[0.06]"
+            >
+              <HelpCircle size={15} />
+            </button>
+          </div>
         </div>
         <div className="flex items-center justify-between gap-2 px-2 pt-2">
           <div className="flex min-w-0 items-center gap-1.5">

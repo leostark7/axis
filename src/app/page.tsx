@@ -12,7 +12,7 @@ import SummaryPanel from "@/components/SummaryPanel";
 import Radar from "@/components/Radar";
 import { DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL } from "@/lib/demandTypes";
 import { useChatUiStore } from "@/lib/chatUiStore";
-import { ArrowRight, AlertTriangle, ClipboardList, Mic } from "lucide-react";
+import { ArrowRight, AlertTriangle, ClipboardList, Mic, LayoutDashboard, Tv } from "lucide-react";
 
 export default function HojePage() {
   const items = useAxisStore((s) => s.items);
@@ -51,12 +51,35 @@ export default function HojePage() {
       <p className="mb-5 text-sm text-[#101a2e]/50">Um resumo do que importa agora.</p>
 
       <button
+        data-tour="quick-voice"
         onClick={openWithVoice}
+        title="Fala o que precisa e a IA organiza pra você"
         className="mb-5 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 px-4 py-4 text-sm font-semibold text-white shadow-[0_10px_24px_-6px_rgba(37,99,235,0.5)] transition hover:brightness-110 active:scale-[0.99]"
       >
         <Mic size={18} />
         Toque para falar
       </button>
+
+      <div className="mb-5 grid grid-cols-2 gap-3">
+        <Link
+          data-tour="painel-link"
+          href="/painel"
+          title="Visão executiva de 10 segundos do seu negócio"
+          className="glass flex items-center gap-2 rounded-2xl p-3.5 text-xs font-semibold text-[#101a2e]/75 hover:bg-[#101a2e]/[0.04]"
+        >
+          <LayoutDashboard size={16} className="text-blue-600" />
+          Painel Executivo
+        </Link>
+        <Link
+          data-tour="apresentacao-link"
+          href="/apresentacao"
+          title="Abre um mural pra deixar numa TV ou monitor da sala"
+          className="glass flex items-center gap-2 rounded-2xl p-3.5 text-xs font-semibold text-[#101a2e]/75 hover:bg-[#101a2e]/[0.04]"
+        >
+          <Tv size={16} className="text-cyan-600" />
+          Modo Apresentação
+        </Link>
+      </div>
 
       <div className="mb-5">
         <QuickAdd />
