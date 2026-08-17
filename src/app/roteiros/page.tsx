@@ -15,7 +15,8 @@ import {
 import QuickAdd from "@/components/QuickAdd";
 import Teleprompter from "@/components/Teleprompter";
 import RoteirosTimeline from "@/components/RoteirosTimeline";
-import { Trash2, Presentation, Building2 } from "lucide-react";
+import ItemModal from "@/components/ItemModal";
+import { Trash2, Presentation, Building2, Pencil } from "lucide-react";
 
 const STAGES: ScriptStage[] = ["rascunho", "gravacao", "edicao", "publicacao"];
 type ViewMode = "kanban" | "timeline";
@@ -30,6 +31,7 @@ export default function RoteirosPage() {
   const setScriptStage = useAxisStore((s) => s.setScriptStage);
   const removeItem = useAxisStore((s) => s.removeItem);
   const [teleprompterItem, setTeleprompterItem] = useState<Item | null>(null);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [view, setView] = useState<ViewMode>("kanban");
   const clients = useClientStore((s) => s.clients);
   const initClients = useClientStore((s) => s.init);
@@ -104,7 +106,17 @@ export default function RoteirosPage() {
                       key={s.id}
                       className="rounded-xl border border-emerald-300 bg-emerald-50 p-3 text-xs text-emerald-800 shadow-sm"
                     >
-                      <div className="mb-1.5 font-medium">{s.title}</div>
+                      <button
+                        onClick={() => setEditingItem(s)}
+                        className="mb-1.5 block text-left font-medium hover:underline"
+                      >
+                        {s.title}
+                      </button>
+                      {!s.notes?.trim() && (
+                        <div className="mb-1.5 text-[10px] font-medium text-amber-600">
+                          Sem roteiro escrito ainda
+                        </div>
+                      )}
                       {clientNameFor(s.clientId) && (
                         <div className="mb-1.5 flex items-center gap-1 text-[10px] font-semibold text-emerald-700/80">
                           <Building2 size={10} />
@@ -140,6 +152,13 @@ export default function RoteirosPage() {
                         </select>
                         <div className="flex items-center gap-2">
                           <button
+                            onClick={() => setEditingItem(s)}
+                            title="Editar roteiro"
+                            className="text-emerald-700/60 hover:text-emerald-900"
+                          >
+                            <Pencil size={13} />
+                          </button>
+                          <button
                             onClick={() => setTeleprompterItem(s)}
                             title="Abrir teleprompter"
                             className="text-emerald-700/60 hover:text-emerald-900"
@@ -166,6 +185,7 @@ export default function RoteirosPage() {
       {teleprompterItem && (
         <Teleprompter item={teleprompterItem} onClose={() => setTeleprompterItem(null)} />
       )}
+      {editingItem && <ItemModal item={editingItem} onClose={() => setEditingItem(null)} />}
     </div>
   );
 }

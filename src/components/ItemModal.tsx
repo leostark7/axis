@@ -106,8 +106,8 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Notas (opcional)"
-          rows={3}
+          placeholder={type === "script" ? "Escreva o roteiro aqui (é o que o teleprompter vai ler)..." : "Notas (opcional)"}
+          rows={type === "script" ? 8 : 3}
           className="mb-3 w-full resize-none rounded-xl border border-[#101a2e]/10 bg-white/70 px-3.5 py-2.5 text-sm text-[#101a2e] outline-none placeholder-[#101a2e]/35 focus:border-blue-400"
         />
 
