@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Sun, CalendarDays, Inbox, Clapperboard, ClipboardList, Building2, MessageSquare, FolderOpen, BarChart3, History, Zap, LogOut, Menu, X, LayoutDashboard, Tv, Moon, SunMedium, HelpCircle, Search } from "lucide-react";
+import { Sun, CalendarDays, Inbox, Clapperboard, ClipboardList, Building2, MessageSquare, FolderOpen, BarChart3, History, Zap, LogOut, Menu, X, LayoutDashboard, Tv, Moon, SunMedium, HelpCircle, Search, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { InstalledBadge } from "./InstallPrompt";
 import SemanticSearch from "./SemanticSearch";
@@ -22,6 +22,7 @@ const NAV = [
   { href: "/demandas", label: "Demandas", icon: ClipboardList },
   { href: "/documentos", label: "Documentos", icon: FolderOpen },
   { href: "/clientes", label: "Clientes", icon: Building2 },
+  { href: "/telefones", label: "Agenda Telefônica", icon: Phone },
   { href: "/metricas", label: "Métricas", icon: BarChart3 },
   { href: "/atividade", label: "Atividade", icon: History },
   { href: "/apresentacao", label: "Modo Apresentação", icon: Tv },

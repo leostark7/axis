@@ -22,14 +22,19 @@ import ItemChip from "@/components/ItemChip";
 import QuickAdd from "@/components/QuickAdd";
 import StatsDashboard from "@/components/StatsDashboard";
 import DayModal from "@/components/DayModal";
+import CategoryFilterToggle from "@/components/CategoryFilterToggle";
+import { useCategoryFilterStore } from "@/lib/categoryFilterStore";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type ViewMode = "month" | "week";
 const MONTH_CELL_LIMIT = 3;
 
 export default function CalendarPage() {
-  const items = useAxisStore((s) => s.items);
+  const allItems = useAxisStore((s) => s.items);
   const scheduleItem = useAxisStore((s) => s.scheduleItem);
+  const categoryFilter = useCategoryFilterStore((s) => s.filter);
+  const items =
+    categoryFilter === "ambos" ? allItems : allItems.filter((it) => (it.category ?? "empresarial") === categoryFilter);
   const [cursor, setCursor] = useState(new Date());
   const [view, setView] = useState<ViewMode>("month");
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -76,6 +81,7 @@ export default function CalendarPage() {
               : format(cursor, "MMMM yyyy", { locale: ptBR })}
           </h1>
           <div className="flex flex-wrap items-center gap-2">
+            <CategoryFilterToggle />
             <div className="glass flex items-center gap-1 rounded-xl p-1">
               <button
                 onClick={() => setView("month")}

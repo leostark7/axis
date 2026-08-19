@@ -20,6 +20,7 @@ import {
   SunMedium,
   Plus,
   Search,
+  Phone,
 } from "lucide-react";
 import { useCommandPaletteStore } from "@/lib/commandPaletteStore";
 import { useChatUiStore } from "@/lib/chatUiStore";
@@ -75,6 +76,7 @@ export default function CommandPalette() {
       { id: "demandas", label: "Ir para Demandas", icon: ClipboardList, run: () => router.push("/demandas") },
       { id: "documentos", label: "Ir para Documentos", icon: FolderOpen, run: () => router.push("/documentos") },
       { id: "clientes", label: "Ir para Clientes", icon: Building2, run: () => router.push("/clientes") },
+      { id: "telefones", label: "Ir para Agenda Telefônica", icon: Phone, run: () => router.push("/telefones") },
       { id: "metricas", label: "Ir para Métricas", icon: BarChart3, run: () => router.push("/metricas") },
       { id: "atividade", label: "Ir para Atividade", icon: History, run: () => router.push("/atividade") },
       { id: "apresentacao", label: "Abrir Modo Apresentação", icon: Tv, run: () => router.push("/apresentacao") },

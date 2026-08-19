@@ -4,13 +4,14 @@ import { requireUser } from "@/lib/requireAuth";
 const SYSTEM_PROMPT = `Você classifica anotações rápidas de uma agenda chamada Axis.
 Dado um texto em português do usuário e uma lista de clientes já cadastrados, retorne APENAS um
 JSON com este formato exato:
-{"type": "idea" | "task" | "event" | "script", "title": string, "date": "YYYY-MM-DD" | null, "time": "HH:mm" | null, "clientName": string | null, "emoji": string}
+{"type": "idea" | "task" | "event" | "script", "title": string, "date": "YYYY-MM-DD" | null, "time": "HH:mm" | null, "clientName": string | null, "category": "empresarial" | "pessoal", "emoji": string}
 
 Regras:
 - "event": compromissos com outra pessoa, reuniões, ligações — geralmente têm hora.
 - "task": afazeres pontuais sem envolver outra pessoa.
 - "script": roteiros, vídeos, gravações, conteúdo a produzir.
 - "idea": qualquer ideia solta, sem ação imediata clara.
+- "category": "pessoal" se for claramente vida pessoal (médico, família, casa, lazer, compromisso íntimo) — caso contrário, sempre "empresarial" (é o padrão, inclusive quando não houver indício claro).
 - Se o texto mencionar um dia relativo ("hoje", "amanhã", "sexta", "dia 20"), calcule a data real usando a data de hoje informada.
 - Se não houver data/hora explícita, retorne null para ambos.
 - "title" deve ser o texto limpo, sem as palavras de data/hora redundantes, mantendo a essência.
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
 
     const validTypes = ["idea", "task", "event", "script"];
     if (!validTypes.includes(parsed.type)) parsed.type = "idea";
+    const category = parsed.category === "pessoal" ? "pessoal" : "empresarial";
 
     return NextResponse.json({
       type: parsed.type,
@@ -74,6 +76,7 @@ export async function POST(req: NextRequest) {
       date: parsed.date ?? null,
       time: parsed.time ?? null,
       clientName: typeof parsed.clientName === "string" ? parsed.clientName : null,
+      category,
       emoji: typeof parsed.emoji === "string" && parsed.emoji ? parsed.emoji : "📌",
     });
   } catch {

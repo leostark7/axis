@@ -78,7 +78,8 @@ interface DemandState {
     startTime?: string | null;
     endTime?: string | null;
     clientId?: string | null;
-  }) => Promise<void>;
+    linkedItemId?: string | null;
+  }) => Promise<Demanda | null>;
   updateDemanda: (id: string, patch: Partial<Demanda>) => Promise<void>;
   removeDemanda: (id: string) => Promise<void>;
   addAttachment: (id: string, attachment: Attachment) => Promise<void>;
@@ -136,17 +137,24 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    await supabase.from("demandas").insert({
-      title: input.title.trim(),
-      description: input.description?.trim() || null,
-      assigned_to: input.assignedTo ?? null,
-      due_date: input.dueDate ?? null,
-      start_time: input.startTime ?? null,
-      end_time: input.endTime ?? null,
-      client_id: input.clientId ?? null,
-      requested_by: user?.id ?? null,
-    });
+    const { data, error } = await supabase
+      .from("demandas")
+      .insert({
+        title: input.title.trim(),
+        description: input.description?.trim() || null,
+        assigned_to: input.assignedTo ?? null,
+        due_date: input.dueDate ?? null,
+        start_time: input.startTime ?? null,
+        end_time: input.endTime ?? null,
+        client_id: input.clientId ?? null,
+        linked_item_id: input.linkedItemId ?? null,
+        requested_by: user?.id ?? null,
+      })
+      .select()
+      .single();
     logActivity("criou a demanda", "demanda", input.title.trim());
+    if (error || !data) return null;
+    return fromRow(data as DemandaRow);
   },
   updateDemanda: async (id, patch) => {
     const before = get().demandas.find((d) => d.id === id);
@@ -157,8 +165,8 @@ export const useDemandStore = create<DemandState>()((set, get) => ({
         ...(patch.description !== undefined && { description: patch.description }),
         ...(patch.status !== undefined && { status: patch.status }),
         ...(patch.assignedTo !== undefined && { assigned_to: patch.assignedTo }),
-        ...(patch.dueDate !== undefined && { due_date: patch.dueDate }),
-        ...(patch.startTime !== undefined && { start_time: patch.startTime }),
+        ...(patch.dueDate !== undefined && { due_date: patch.dueDate, reminded_at: null }),
+        ...(patch.startTime !== undefined && { start_time: patch.startTime, reminded_at: null }),
         ...(patch.endTime !== undefined && { end_time: patch.endTime }),
         ...(patch.attachments !== undefined && { attachments: patch.attachments }),
         ...(patch.reactions !== undefined && { reactions: patch.reactions }),

@@ -77,6 +77,7 @@ export default function GlobalQuickAdd() {
         date: result.date,
         time: result.time,
         clientId: matchedClient?.id ?? null,
+        category: result.category,
       });
     } else {
       addItem({ title: text, type, date: null });

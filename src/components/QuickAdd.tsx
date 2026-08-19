@@ -4,18 +4,24 @@ import { useEffect, useState } from "react";
 import { useAxisStore } from "@/lib/store";
 import { useClientStore } from "@/lib/clientStore";
 import { classifyText } from "@/lib/classify";
-import { ItemType, TYPE_LABEL } from "@/lib/types";
+import { ItemCategory, ItemType, TYPE_LABEL, CATEGORY_LABEL } from "@/lib/types";
+import { useCategoryFilterStore } from "@/lib/categoryFilterStore";
 import VoiceButton from "./VoiceButton";
 import { Sparkles, Loader2 } from "lucide-react";
 
 const TYPES: ItemType[] = ["idea", "task", "script", "event"];
+const CATEGORIES: ItemCategory[] = ["empresarial", "pessoal"];
 
 export default function QuickAdd() {
   const addItem = useAxisStore((s) => s.addItem);
   const clients = useClientStore((s) => s.clients);
   const initClients = useClientStore((s) => s.init);
+  const categoryFilter = useCategoryFilterStore((s) => s.filter);
   const [title, setTitle] = useState("");
   const [type, setType] = useState<ItemType>("idea");
+  const [category, setCategory] = useState<ItemCategory>(
+    categoryFilter === "pessoal" ? "pessoal" : "empresarial"
+  );
   const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
@@ -24,7 +30,7 @@ export default function QuickAdd() {
 
   function submit() {
     if (!title.trim()) return;
-    addItem({ title, type, date: null });
+    addItem({ title, type, date: null, category });
     setTitle("");
   }
 
@@ -44,9 +50,10 @@ export default function QuickAdd() {
         date: result.date,
         time: result.time,
         clientId: matchedClient?.id ?? null,
+        category: result.category,
       });
     } else {
-      addItem({ title: text, type, date: null });
+      addItem({ title: text, type, date: null, category });
     }
     setTitle("");
   }
@@ -61,6 +68,18 @@ export default function QuickAdd() {
         {TYPES.map((t) => (
           <option key={t} value={t}>
             {TYPE_LABEL[t]}
+          </option>
+        ))}
+      </select>
+      <select
+        value={category}
+        onChange={(e) => setCategory(e.target.value as ItemCategory)}
+        title="Empresarial ou pessoal"
+        className="hidden rounded-xl bg-[#101a2e]/5 px-3 py-2.5 text-sm font-medium text-[#101a2e] outline-none sm:block"
+      >
+        {CATEGORIES.map((c) => (
+          <option key={c} value={c}>
+            {CATEGORY_LABEL[c]}
           </option>
         ))}
       </select>

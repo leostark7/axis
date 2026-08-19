@@ -1,5 +1,12 @@
 export type ItemType = "idea" | "task" | "event" | "script";
 
+export type ItemCategory = "empresarial" | "pessoal";
+
+export const CATEGORY_LABEL: Record<ItemCategory, string> = {
+  empresarial: "Empresarial",
+  pessoal: "Pessoal",
+};
+
 export type ScriptStage = "rascunho" | "gravacao" | "edicao" | "publicacao";
 
 export type RecurrenceFreq = "daily" | "weekly" | "monthly";
@@ -32,6 +39,7 @@ export interface Item {
   recurringGroupId?: string | null;
   recurrenceLabel?: string | null;
   clientId?: string | null;
+  category?: ItemCategory;
 }
 
 export const TYPE_LABEL: Record<ItemType, string> = {

@@ -1,5 +1,5 @@
-// Standalone script (run via cron) that pushes reminders for items due soon
-// and flags stale demandas, even when no browser tab is open.
+// Standalone script (run via cron) that pushes reminders for items and
+// demandas due soon, even when no browser tab is open.
 // Requires: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY
 
 import { createClient } from "@supabase/supabase-js";
@@ -47,31 +47,56 @@ async function sendToAll(title, body, url = "/") {
 async function main() {
   const now = new Date();
   const windowEnd = new Date(now.getTime() + 15 * 60 * 1000);
+  const today = now.toISOString().slice(0, 10);
 
+  // Itens com horário (inclui compromissos) — alarme 15min antes, uma única vez.
   const { data: items } = await supabase
     .from("items")
-    .select("id, title, date, time, done")
-    .eq("date", now.toISOString().slice(0, 10))
+    .select("id, title, date, time, done, reminded_at")
+    .eq("date", today)
     .not("time", "is", null)
-    .eq("done", false);
+    .eq("done", false)
+    .is("reminded_at", null);
 
   for (const item of items ?? []) {
     const due = new Date(`${item.date}T${item.time}:00`);
     if (due > now && due <= windowEnd) {
       await sendToAll("Axis — daqui a pouco", `${item.title} às ${item.time}`, "/");
+      await supabase.from("items").update({ reminded_at: now.toISOString() }).eq("id", item.id);
       console.log(`Sent reminder for item ${item.id}`);
     }
   }
 
-  const { data: demandas } = await supabase
+  // Demandas com horário de início — mesmo alarme 15min antes.
+  const { data: demandasComHorario } = await supabase
     .from("demandas")
-    .select("id, title, due_date, status")
+    .select("id, title, due_date, start_time, status, reminded_at")
     .neq("status", "concluida")
-    .not("due_date", "is", null)
-    .eq("due_date", now.toISOString().slice(0, 10));
+    .eq("due_date", today)
+    .not("start_time", "is", null)
+    .is("reminded_at", null);
 
-  for (const d of demandas ?? []) {
+  for (const d of demandasComHorario ?? []) {
+    const due = new Date(`${d.due_date}T${d.start_time}:00`);
+    if (due > now && due <= windowEnd) {
+      await sendToAll("Axis — daqui a pouco", `${d.title} às ${d.start_time}`, "/demandas");
+      await supabase.from("demandas").update({ reminded_at: now.toISOString() }).eq("id", d.id);
+      console.log(`Sent start-time reminder for demanda ${d.id}`);
+    }
+  }
+
+  // Demandas sem horário, vencendo hoje — alerta único de "vence hoje".
+  const { data: demandasSemHorario } = await supabase
+    .from("demandas")
+    .select("id, title, due_date, start_time, status, reminded_at")
+    .neq("status", "concluida")
+    .eq("due_date", today)
+    .is("start_time", null)
+    .is("reminded_at", null);
+
+  for (const d of demandasSemHorario ?? []) {
     await sendToAll("Axis — demanda vence hoje", d.title, "/demandas");
+    await supabase.from("demandas").update({ reminded_at: now.toISOString() }).eq("id", d.id);
     console.log(`Sent due-today alert for demanda ${d.id}`);
   }
 }

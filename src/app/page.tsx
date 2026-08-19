@@ -12,18 +12,24 @@ import SummaryPanel from "@/components/SummaryPanel";
 import Radar from "@/components/Radar";
 import { DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL } from "@/lib/demandTypes";
 import { useChatUiStore } from "@/lib/chatUiStore";
+import { useCategoryFilterStore } from "@/lib/categoryFilterStore";
+import CategoryFilterToggle from "@/components/CategoryFilterToggle";
 import { ArrowRight, AlertTriangle, ClipboardList, Mic, LayoutDashboard, Tv } from "lucide-react";
 
 export default function HojePage() {
-  const items = useAxisStore((s) => s.items);
+  const allItems = useAxisStore((s) => s.items);
   const scheduleItem = useAxisStore((s) => s.scheduleItem);
   const initDemandas = useDemandStore((s) => s.init);
   const demandas = useDemandStore((s) => s.demandas);
   const openWithVoice = useChatUiStore((s) => s.openWithVoice);
+  const categoryFilter = useCategoryFilterStore((s) => s.filter);
 
   useEffect(() => {
     initDemandas();
   }, [initDemandas]);
+
+  const items =
+    categoryFilter === "ambos" ? allItems : allItems.filter((it) => (it.category ?? "empresarial") === categoryFilter);
 
   const now = new Date();
   const todayItems = items
@@ -45,9 +51,12 @@ export default function HojePage() {
 
   return (
     <div className="mx-auto max-w-3xl p-4 md:p-6">
-      <h1 className="mb-1 text-2xl font-bold capitalize glow-text">
-        {greeting} — {format(now, "EEEE, d 'de' MMMM", { locale: ptBR })}
-      </h1>
+      <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-2xl font-bold capitalize glow-text">
+          {greeting} — {format(now, "EEEE, d 'de' MMMM", { locale: ptBR })}
+        </h1>
+        <CategoryFilterToggle />
+      </div>
       <p className="mb-5 text-sm text-[#101a2e]/50">Um resumo do que importa agora.</p>
 
       <button

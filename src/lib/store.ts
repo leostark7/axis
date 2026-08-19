@@ -5,7 +5,7 @@ import { addDays, addMonths, addWeeks, format } from "date-fns";
 import { createClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activityLog";
 import { useUndoStore } from "@/lib/undoStore";
-import { Item, ItemType, Reaction, RecurrenceFreq, RECURRENCE_LABEL, ScriptStage } from "./types";
+import { Item, ItemCategory, ItemType, Reaction, RecurrenceFreq, RECURRENCE_LABEL, ScriptStage } from "./types";
 
 const supabase = createClient();
 
@@ -24,6 +24,7 @@ type Row = {
   recurring_group_id: string | null;
   recurrence_label: string | null;
   client_id: string | null;
+  category: ItemCategory;
 };
 
 function fromRow(row: Row): Item {
@@ -42,6 +43,7 @@ function fromRow(row: Row): Item {
     recurringGroupId: row.recurring_group_id,
     recurrenceLabel: row.recurrence_label,
     clientId: row.client_id,
+    category: row.category ?? "empresarial",
   };
 }
 
@@ -57,6 +59,7 @@ interface AxisState {
     time?: string | null;
     notes?: string;
     clientId?: string | null;
+    category?: ItemCategory;
   }) => Promise<void>;
   updateItem: (id: string, patch: Partial<Item>) => Promise<void>;
   removeItem: (id: string) => Promise<void>;
@@ -124,6 +127,7 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
       notes: input.notes ?? null,
       script_stage: input.type === "script" ? "rascunho" : null,
       client_id: input.clientId ?? null,
+      category: input.category ?? "empresarial",
       created_by: user?.id ?? null,
     });
     logActivity("criou", "item", input.title.trim());
@@ -134,14 +138,15 @@ export const useAxisStore = create<AxisState>()((set, get) => ({
       .update({
         ...(patch.title !== undefined && { title: patch.title }),
         ...(patch.notes !== undefined && { notes: patch.notes }),
-        ...(patch.date !== undefined && { date: patch.date }),
-        ...(patch.time !== undefined && { time: patch.time }),
+        ...(patch.date !== undefined && { date: patch.date, reminded_at: null }),
+        ...(patch.time !== undefined && { time: patch.time, reminded_at: null }),
         ...(patch.done !== undefined && { done: patch.done }),
         ...(patch.scriptStage !== undefined && { script_stage: patch.scriptStage }),
         ...(patch.reactions !== undefined && { reactions: patch.reactions }),
         ...(patch.recurringGroupId !== undefined && { recurring_group_id: patch.recurringGroupId }),
         ...(patch.recurrenceLabel !== undefined && { recurrence_label: patch.recurrenceLabel }),
         ...(patch.clientId !== undefined && { client_id: patch.clientId }),
+        ...(patch.category !== undefined && { category: patch.category }),
       })
       .eq("id", id);
   },

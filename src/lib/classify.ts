@@ -1,4 +1,4 @@
-import { ItemType } from "./types";
+import { ItemCategory, ItemType } from "./types";
 
 export interface Classification {
   type: ItemType;
@@ -6,6 +6,7 @@ export interface Classification {
   date: string | null;
   time: string | null;
   clientName: string | null;
+  category: ItemCategory;
   emoji: string;
 }
 

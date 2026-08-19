@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Item, ItemType, RECURRENCE_LABEL, RecurrenceFreq, TYPE_LABEL } from "@/lib/types";
+import { Item, ItemCategory, ItemType, RECURRENCE_LABEL, RecurrenceFreq, TYPE_LABEL, CATEGORY_LABEL } from "@/lib/types";
 import { useAxisStore } from "@/lib/store";
 import { useClientStore } from "@/lib/clientStore";
+import { useDemandStore } from "@/lib/demandStore";
+import { Demanda } from "@/lib/demandTypes";
+import DemandaModal from "./DemandaModal";
 import ReactionBar from "./ReactionBar";
-import { X, Trash2, CalendarPlus, Repeat, Building2 } from "lucide-react";
+import { X, Trash2, CalendarPlus, Repeat, Building2, ClipboardList, Loader2 } from "lucide-react";
 
 const TYPES: ItemType[] = ["idea", "task", "script", "event"];
+const CATEGORIES: ItemCategory[] = ["empresarial", "pessoal"];
 const FREQS: RecurrenceFreq[] = ["daily", "weekly", "monthly"];
 
 export default function ItemModal({ item, onClose }: { item: Item; onClose: () => void }) {
@@ -19,6 +23,11 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
   const removeSeries = useAxisStore((s) => s.removeSeries);
   const clients = useClientStore((s) => s.clients);
   const initClients = useClientStore((s) => s.init);
+  const demandas = useDemandStore((s) => s.demandas);
+  const initDemandas = useDemandStore((s) => s.init);
+  const addDemanda = useDemandStore((s) => s.addDemanda);
+  const [creatingDemanda, setCreatingDemanda] = useState(false);
+  const [openDemanda, setOpenDemanda] = useState<Demanda | null>(null);
 
   const [title, setTitle] = useState(item.title);
   const [notes, setNotes] = useState(item.notes ?? "");
@@ -28,6 +37,7 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
   const [freq, setFreq] = useState<RecurrenceFreq>("weekly");
   const [applyingRecurrence, setApplyingRecurrence] = useState(false);
   const [clientId, setClientId] = useState(item.clientId ?? "");
+  const [category, setCategory] = useState<ItemCategory>(item.category ?? "empresarial");
 
   useEffect(() => {
     setTitle(item.title);
@@ -36,11 +46,28 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
     setDate(item.date ?? "");
     setTime(item.time ?? "");
     setClientId(item.clientId ?? "");
+    setCategory(item.category ?? "empresarial");
   }, [item]);
 
   useEffect(() => {
     initClients();
-  }, [initClients]);
+    initDemandas();
+  }, [initClients, initDemandas]);
+
+  const linkedDemanda = demandas.find((d) => d.linkedItemId === item.id) ?? null;
+
+  async function handleGerarDemanda() {
+    setCreatingDemanda(true);
+    const created = await addDemanda({
+      title: item.title,
+      dueDate: item.date,
+      startTime: time || null,
+      clientId: item.clientId,
+      linkedItemId: item.id,
+    });
+    setCreatingDemanda(false);
+    if (created) setOpenDemanda(created);
+  }
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Escape") onClose();
@@ -53,6 +80,7 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
       date: date || null,
       time: time || null,
       clientId: clientId || null,
+      category,
     });
     onClose();
   }
@@ -110,6 +138,20 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
           rows={type === "script" ? 8 : 3}
           className="mb-3 w-full resize-none rounded-xl border border-[#101a2e]/10 bg-white/70 px-3.5 py-2.5 text-sm text-[#101a2e] outline-none placeholder-[#101a2e]/35 focus:border-blue-400"
         />
+
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as ItemCategory)}
+            className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-2 py-2.5 text-xs font-medium text-[#101a2e] outline-none"
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_LABEL[c]}
+              </option>
+            ))}
+          </select>
+        </div>
 
         <div className="mb-3 grid grid-cols-3 gap-2">
           <select
@@ -201,6 +243,32 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
           </div>
         )}
 
+        {type === "event" && (
+          <div className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-3">
+            {linkedDemanda ? (
+              <button
+                onClick={() => setOpenDemanda(linkedDemanda)}
+                className="flex w-full items-center justify-between text-xs font-semibold text-blue-700"
+              >
+                <span className="flex items-center gap-1.5">
+                  <ClipboardList size={13} />
+                  Demanda vinculada: {linkedDemanda.title}
+                </span>
+                <span className="underline">Abrir</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleGerarDemanda}
+                disabled={creatingDemanda}
+                className="flex w-full items-center justify-center gap-1.5 text-xs font-semibold text-blue-700 disabled:opacity-60"
+              >
+                {creatingDemanda ? <Loader2 size={13} className="animate-spin" /> : <ClipboardList size={13} />}
+                Esse compromisso gera demanda?
+              </button>
+            )}
+          </div>
+        )}
+
         {!date && (
           <button
             onClick={() => setDate(new Date().toISOString().slice(0, 10))}
@@ -227,6 +295,8 @@ export default function ItemModal({ item, onClose }: { item: Item; onClose: () =
           </button>
         </div>
       </div>
+
+      {openDemanda && <DemandaModal demanda={openDemanda} onClose={() => setOpenDemanda(null)} />}
     </div>
   );
 }
