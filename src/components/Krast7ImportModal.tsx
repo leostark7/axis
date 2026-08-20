@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useClientStore } from "@/lib/clientStore";
 import { Client, TAX_REGIME_LABEL, TaxRegime } from "@/lib/clientTypes";
-import { X, Loader2, Building2, Check } from "lucide-react";
+import { X, Loader2, Building2, Check, RefreshCw } from "lucide-react";
 
 type Empresa = {
   id: string;
@@ -19,9 +19,15 @@ function onlyDigits(v: string | null) {
   return (v ?? "").replace(/\D/g, "");
 }
 
+type Row =
+  | { kind: "new"; empresa: Empresa }
+  | { kind: "update"; empresa: Empresa; client: Client; changedFields: string[] }
+  | { kind: "synced"; empresa: Empresa; client: Client };
+
 export default function Krast7ImportModal({ onClose }: { onClose: () => void }) {
   const clients = useClientStore((s) => s.clients);
   const addClient = useClientStore((s) => s.addClient);
+  const updateClient = useClientStore((s) => s.updateClient);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -40,7 +46,23 @@ export default function Krast7ImportModal({ onClose }: { onClose: () => void }) 
       .finally(() => setLoading(false));
   }, []);
 
-  const existingCnpjs = new Set(clients.map((c: Client) => onlyDigits(c.cnpj)).filter(Boolean));
+  const rows: Row[] = useMemo(() => {
+    return empresas.map((e) => {
+      const match = clients.find((c) => onlyDigits(c.cnpj) && onlyDigits(c.cnpj) === onlyDigits(e.cnpj));
+      if (!match) return { kind: "new", empresa: e };
+
+      const changedFields: string[] = [];
+      if (e.regime && e.regime !== match.taxRegime) changedFields.push("Regime tributário");
+      if (e.ie && e.ie !== match.stateRegistration) changedFields.push("Inscrição Estadual");
+      if (e.telefone && e.telefone !== match.contactPhone) changedFields.push("Telefone");
+      if (e.endereco && e.endereco !== match.address) changedFields.push("Endereço");
+
+      if (changedFields.length === 0) return { kind: "synced", empresa: e, client: match };
+      return { kind: "update", empresa: e, client: match, changedFields };
+    });
+  }, [empresas, clients]);
+
+  const actionable = rows.filter((r) => r.kind !== "synced");
 
   function toggle(id: string) {
     setSelected((s) => {
@@ -54,16 +76,26 @@ export default function Krast7ImportModal({ onClose }: { onClose: () => void }) 
   async function handleImport() {
     setImporting(true);
     setDone(0);
-    const toImport = empresas.filter((e) => selected.has(e.id));
-    for (const e of toImport) {
-      await addClient({
-        name: e.nome,
-        contactPhone: e.telefone ?? undefined,
-        cnpj: e.cnpj,
-        address: e.endereco,
-        stateRegistration: e.ie,
-        taxRegime: e.regime,
-      });
+    const toProcess = actionable.filter((r) => selected.has(r.empresa.id));
+    for (const row of toProcess) {
+      const e = row.empresa;
+      if (row.kind === "new") {
+        await addClient({
+          name: e.nome,
+          contactPhone: e.telefone ?? undefined,
+          cnpj: e.cnpj,
+          address: e.endereco,
+          stateRegistration: e.ie,
+          taxRegime: e.regime,
+        });
+      } else {
+        await updateClient(row.client.id, {
+          ...(e.regime && { taxRegime: e.regime }),
+          ...(e.ie && { stateRegistration: e.ie }),
+          ...(e.telefone && { contactPhone: e.telefone }),
+          ...(e.endereco && { address: e.endereco }),
+        });
+      }
       setDone((d) => d + 1);
     }
     setImporting(false);
@@ -79,7 +111,7 @@ export default function Krast7ImportModal({ onClose }: { onClose: () => void }) 
         <div className="flex items-center justify-between border-b border-[#101a2e]/10 px-5 py-4">
           <h2 className="flex items-center gap-2 text-sm font-bold text-[#101a2e]">
             <Building2 size={15} className="text-blue-600" />
-            Importar do KRAST7
+            Importar / Sincronizar com o KRAST7
           </h2>
           <button onClick={onClose} className="rounded-lg p-1.5 text-[#101a2e]/50 hover:bg-[#101a2e]/10">
             <X size={16} />
@@ -94,41 +126,54 @@ export default function Krast7ImportModal({ onClose }: { onClose: () => void }) 
             </div>
           )}
           {error && <p className="rounded-xl bg-red-50 p-4 text-xs text-red-600">{error}</p>}
-          {!loading && !error && empresas.length === 0 && (
+          {!loading && !error && rows.length === 0 && (
             <p className="p-6 text-center text-xs text-[#101a2e]/40">Nenhuma empresa encontrada no KRAST7.</p>
           )}
-          {!loading && !error && empresas.length > 0 && (
+          {!loading && !error && rows.length > 0 && (
             <div className="flex flex-col gap-1.5">
-              {empresas.map((e) => {
-                const already = existingCnpjs.has(onlyDigits(e.cnpj));
+              {rows.map((row) => {
+                const e = row.empresa;
+                const isSynced = row.kind === "synced";
+                const isSelected = selected.has(e.id);
                 return (
                   <button
                     key={e.id}
-                    onClick={() => !already && toggle(e.id)}
-                    disabled={already}
+                    onClick={() => !isSynced && toggle(e.id)}
+                    disabled={isSynced}
                     className={`flex items-center gap-3 rounded-xl border p-3 text-left text-xs transition ${
-                      already
+                      isSynced
                         ? "cursor-not-allowed border-[#101a2e]/10 bg-[#101a2e]/[0.03] opacity-50"
-                        : selected.has(e.id)
-                          ? "border-blue-400 bg-blue-50"
+                        : isSelected
+                          ? row.kind === "update"
+                            ? "border-amber-400 bg-amber-50"
+                            : "border-blue-400 bg-blue-50"
                           : "border-[#101a2e]/10 bg-white/40 hover:bg-[#101a2e]/[0.03]"
                     }`}
                   >
                     <div
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                        selected.has(e.id) ? "border-blue-500 bg-blue-500 text-white" : "border-[#101a2e]/20"
+                        isSelected
+                          ? row.kind === "update"
+                            ? "border-amber-500 bg-amber-500 text-white"
+                            : "border-blue-500 bg-blue-500 text-white"
+                          : "border-[#101a2e]/20"
                       }`}
                     >
-                      {selected.has(e.id) && <Check size={12} />}
+                      {isSelected && (row.kind === "update" ? <RefreshCw size={11} /> : <Check size={12} />)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-semibold text-[#101a2e]">{e.nome}</div>
                       <div className="truncate text-[10px] text-[#101a2e]/45">
-                        {already
-                          ? "Já cadastrado no Axis"
-                          : [e.telefone, e.regime ? TAX_REGIME_LABEL[e.regime] : null, e.endereco]
-                              .filter(Boolean)
-                              .join(" · ") || "Sem telefone/endereço"}
+                        {row.kind === "synced" && "Já sincronizado com o Axis"}
+                        {row.kind === "update" && (
+                          <span className="font-semibold text-amber-700">
+                            Atualizar: {row.changedFields.join(", ")}
+                          </span>
+                        )}
+                        {row.kind === "new" &&
+                          ([e.telefone, e.regime ? TAX_REGIME_LABEL[e.regime] : null, e.endereco]
+                            .filter(Boolean)
+                            .join(" · ") || "Sem telefone/endereço")}
                       </div>
                     </div>
                   </button>
@@ -150,10 +195,10 @@ export default function Krast7ImportModal({ onClose }: { onClose: () => void }) 
             {importing ? (
               <>
                 <Loader2 size={13} className="animate-spin" />
-                Importando {done}/{selected.size}...
+                Processando {done}/{selected.size}...
               </>
             ) : (
-              `Importar ${selected.size || ""}`
+              `Importar / Atualizar ${selected.size || ""}`
             )}
           </button>
         </div>

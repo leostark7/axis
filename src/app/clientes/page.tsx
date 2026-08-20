@@ -1,27 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useClientStore } from "@/lib/clientStore";
 import { useDemandStore } from "@/lib/demandStore";
 import { CLIENT_STATUS_COLOR, CLIENT_STATUS_LABEL } from "@/lib/clientTypes";
 import { exportToCsv } from "@/lib/csv";
+import { syncKrast7Regimes } from "@/lib/krast7Sync";
 import Krast7ImportModal from "@/components/Krast7ImportModal";
-import { Plus, Building2, ChevronRight, Download, ArrowDownToLine } from "lucide-react";
+import { Plus, Building2, ChevronRight, Download, ArrowDownToLine, RefreshCw } from "lucide-react";
 
 export default function ClientesPage() {
   const init = useClientStore((s) => s.init);
   const clients = useClientStore((s) => s.clients);
   const addClient = useClientStore((s) => s.addClient);
+  const updateClient = useClientStore((s) => s.updateClient);
   const initDemandas = useDemandStore((s) => s.init);
   const demandas = useDemandStore((s) => s.demandas);
   const [name, setName] = useState("");
   const [showImport, setShowImport] = useState(false);
+  const [syncedCount, setSyncedCount] = useState<number | null>(null);
+  const syncRan = useRef(false);
 
   useEffect(() => {
     init();
     initDemandas();
   }, [init, initDemandas]);
+
+  useEffect(() => {
+    if (syncRan.current || clients.length === 0) return;
+    syncRan.current = true;
+    syncKrast7Regimes(clients, updateClient).then((count) => {
+      if (count > 0) setSyncedCount(count);
+    });
+  }, [clients, updateClient]);
 
   async function quickCreate() {
     if (!name.trim()) return;
@@ -73,6 +85,13 @@ export default function ClientesPage() {
       <p className="mb-5 text-sm text-[#101a2e]/50">
         Cada cliente reúne todos os roteiros e demandas relacionados num só lugar.
       </p>
+
+      {syncedCount !== null && (
+        <div className="mb-5 flex items-center gap-2 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-xs font-medium text-emerald-700">
+          <RefreshCw size={13} />
+          {syncedCount} cliente{syncedCount > 1 ? "s" : ""} atualizado{syncedCount > 1 ? "s" : ""} automaticamente com o regime tributário mais recente do KRAST7.
+        </div>
+      )}
 
       <div className="glass mb-6 flex items-center gap-2 rounded-2xl p-2">
         <input
