@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useClientStore } from "@/lib/clientStore";
-import { Client } from "@/lib/clientTypes";
+import { Client, TAX_REGIME_LABEL, TaxRegime } from "@/lib/clientTypes";
 import { X, Loader2, Building2, Check } from "lucide-react";
 
 type Empresa = {
@@ -11,6 +11,8 @@ type Empresa = {
   cnpj: string | null;
   telefone: string | null;
   endereco: string | null;
+  ie: string | null;
+  regime: TaxRegime | null;
 };
 
 function onlyDigits(v: string | null) {
@@ -59,6 +61,8 @@ export default function Krast7ImportModal({ onClose }: { onClose: () => void }) 
         contactPhone: e.telefone ?? undefined,
         cnpj: e.cnpj,
         address: e.endereco,
+        stateRegistration: e.ie,
+        taxRegime: e.regime,
       });
       setDone((d) => d + 1);
     }
@@ -120,7 +124,11 @@ export default function Krast7ImportModal({ onClose }: { onClose: () => void }) 
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-semibold text-[#101a2e]">{e.nome}</div>
                       <div className="truncate text-[10px] text-[#101a2e]/45">
-                        {already ? "Já cadastrado no Axis" : [e.telefone, e.endereco].filter(Boolean).join(" · ") || "Sem telefone/endereço"}
+                        {already
+                          ? "Já cadastrado no Axis"
+                          : [e.telefone, e.regime ? TAX_REGIME_LABEL[e.regime] : null, e.endereco]
+                              .filter(Boolean)
+                              .join(" · ") || "Sem telefone/endereço"}
                       </div>
                     </div>
                   </button>

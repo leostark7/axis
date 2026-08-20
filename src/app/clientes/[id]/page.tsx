@@ -7,7 +7,7 @@ import { ptBR } from "date-fns/locale";
 import { useClientStore } from "@/lib/clientStore";
 import { useDemandStore } from "@/lib/demandStore";
 import { useAxisStore } from "@/lib/store";
-import { CLIENT_STATUS_COLOR, CLIENT_STATUS_LABEL, ClientStatus } from "@/lib/clientTypes";
+import { CLIENT_STATUS_COLOR, CLIENT_STATUS_LABEL, ClientStatus, TAX_REGIME_LABEL, TaxRegime } from "@/lib/clientTypes";
 import { DEMANDA_STATUS_COLOR, DEMANDA_STATUS_LABEL } from "@/lib/demandTypes";
 import { TYPE_LABEL } from "@/lib/types";
 import DemandaModal from "@/components/DemandaModal";
@@ -15,6 +15,7 @@ import ItemModal from "@/components/ItemModal";
 import { ArrowLeft, Trash2, FileText } from "lucide-react";
 
 const STATUSES: ClientStatus[] = ["ativo", "pausado", "encerrado"];
+const REGIMES: TaxRegime[] = ["simples_nacional", "lucro_presumido", "lucro_real", "mei"];
 
 export default function ClienteDetailPage() {
   const params = useParams<{ id: string }>();
@@ -127,6 +128,24 @@ export default function ClienteDetailPage() {
             placeholder="Endereço"
             className="col-span-2 rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
           />
+          <input
+            defaultValue={client.stateRegistration ?? ""}
+            onBlur={(e) => updateClient(client.id, { stateRegistration: e.target.value })}
+            placeholder="Inscrição Estadual"
+            className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+          />
+          <select
+            value={client.taxRegime ?? ""}
+            onChange={(e) => updateClient(client.id, { taxRegime: (e.target.value || null) as TaxRegime | null })}
+            className="rounded-xl border border-[#101a2e]/10 bg-white/70 px-3 py-2 text-xs text-[#101a2e] outline-none"
+          >
+            <option value="">Regime tributário</option>
+            {REGIMES.map((r) => (
+              <option key={r} value={r}>
+                {TAX_REGIME_LABEL[r]}
+              </option>
+            ))}
+          </select>
         </div>
         <textarea
           defaultValue={client.notes ?? ""}

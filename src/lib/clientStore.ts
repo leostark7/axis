@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
 import { logActivity } from "@/lib/activityLog";
 import { useUndoStore } from "@/lib/undoStore";
-import { Client, ClientStatus } from "./clientTypes";
+import { Client, ClientStatus, TaxRegime } from "./clientTypes";
 
 const supabase = createSupabaseClient();
 
@@ -18,6 +18,8 @@ type Row = {
   notes: string | null;
   cnpj: string | null;
   address: string | null;
+  state_registration: string | null;
+  tax_regime: TaxRegime | null;
   created_at: string;
   updated_at: string;
 };
@@ -33,6 +35,8 @@ function fromRow(row: Row): Client {
     notes: row.notes,
     cnpj: row.cnpj ?? null,
     address: row.address ?? null,
+    stateRegistration: row.state_registration ?? null,
+    taxRegime: row.tax_regime ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -49,6 +53,8 @@ interface ClientState {
     contactPhone?: string;
     cnpj?: string | null;
     address?: string | null;
+    stateRegistration?: string | null;
+    taxRegime?: TaxRegime | null;
   }) => Promise<void>;
   updateClient: (id: string, patch: Partial<Client>) => Promise<void>;
   removeClient: (id: string) => Promise<void>;
@@ -90,6 +96,8 @@ export const useClientStore = create<ClientState>()((set, get) => ({
       contact_phone: input.contactPhone?.trim() || null,
       cnpj: input.cnpj?.trim() || null,
       address: input.address?.trim() || null,
+      state_registration: input.stateRegistration?.trim() || null,
+      tax_regime: input.taxRegime ?? null,
     });
     logActivity("cadastrou o cliente", "cliente", input.name.trim());
   },
@@ -105,6 +113,8 @@ export const useClientStore = create<ClientState>()((set, get) => ({
         ...(patch.notes !== undefined && { notes: patch.notes }),
         ...(patch.cnpj !== undefined && { cnpj: patch.cnpj }),
         ...(patch.address !== undefined && { address: patch.address }),
+        ...(patch.stateRegistration !== undefined && { state_registration: patch.stateRegistration }),
+        ...(patch.taxRegime !== undefined && { tax_regime: patch.taxRegime }),
       })
       .eq("id", id);
   },
@@ -123,6 +133,8 @@ export const useClientStore = create<ClientState>()((set, get) => ({
           notes: client.notes,
           cnpj: client.cnpj,
           address: client.address,
+          state_registration: client.stateRegistration,
+          tax_regime: client.taxRegime,
         });
       });
     }

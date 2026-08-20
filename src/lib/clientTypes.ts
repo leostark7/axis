@@ -1,5 +1,14 @@
 export type ClientStatus = "ativo" | "pausado" | "encerrado";
 
+export type TaxRegime = "simples_nacional" | "lucro_presumido" | "lucro_real" | "mei";
+
+export const TAX_REGIME_LABEL: Record<TaxRegime, string> = {
+  simples_nacional: "Simples Nacional",
+  lucro_presumido: "Lucro Presumido",
+  lucro_real: "Lucro Real",
+  mei: "MEI",
+};
+
 export interface Client {
   id: string;
   name: string;
@@ -10,6 +19,8 @@ export interface Client {
   notes: string | null;
   cnpj: string | null;
   address: string | null;
+  stateRegistration: string | null;
+  taxRegime: TaxRegime | null;
   createdAt: string;
   updatedAt: string;
 }
